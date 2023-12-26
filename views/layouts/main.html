@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/output.css" />
+    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="/script.js"></script>
+  </head>
+  <body class="font-mono bg-slate-100 h-screen">
+    <!-- Navbar -->
+    <div class="h-[60px] px-10 flex justify-between items-center">
+      <h1 class="text-blue-700 text-2xl font-bold">Go Library Website</h1>
+      {{if .IsAuthenticated}}
+      <span
+        hx-post="/api/logout"
+        class="hover:text-blue-700 text-xl font-semibold cursor-pointer"
+        >Logout</span
+      >
+      {{else}}
+      <a href="/login" class="hover:text-blue-700 text-xl font-semibold"
+        >Login</a
+      >
+      {{end}}
+    </div>
+
+    {{embed}}
+  </body>
+</html>
