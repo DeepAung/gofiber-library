@@ -1,11 +1,12 @@
-package handlers
+package views
 
 import (
+	"fmt"
+
 	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/books"
 	"github.com/DeepAung/gofiber-library/modules/users"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
-	"github.com/DeepAung/gofiber-library/services"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -32,10 +33,11 @@ func NewViewsHandler(
 
 	middlewares.UseAuthMiddleware(r, cfg, usersService)
 	r.Get("/", h.IndexView)
+	r.Get("/admin", h.AdminView)
 }
 
 func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
-	books, err := getBooks(c)
+	books, err := h.booksService.GetBooks()
 	if err != nil {
 		c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -48,9 +50,17 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 	)
 }
 
+func (h *ViewsHandler) AdminView(c *fiber.Ctx) error { // TODO: add admin view
+	// books, err := h.booksService.GetBooks()
+	// if err != nil {
+	// c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	// }
+	return fmt.Errorf("error")
+}
+
 func (h *ViewsHandler) LoginView(c *fiber.Ctx) error {
 	return c.Render("login", fiber.Map{
-		"IsAuthenticated": services.IsAuthenticated(c),
+		"IsAuthenticated": h.usersService.IsAuthenticated(c),
 	},
 		"layouts/main",
 	)
@@ -58,7 +68,7 @@ func (h *ViewsHandler) LoginView(c *fiber.Ctx) error {
 
 func (h *ViewsHandler) RegisterView(c *fiber.Ctx) error {
 	return c.Render("register", fiber.Map{
-		"IsAuthenticated": services.IsAuthenticated(c),
+		"IsAuthenticated": h.usersService.IsAuthenticated(c),
 	},
 		"layouts/main",
 	)

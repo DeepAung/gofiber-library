@@ -35,7 +35,7 @@ func (h *UsersHandler) Login(c *fiber.Ctx) error {
 	err := h.service.Login(loginReq, c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Errors": []string{err.Error()}})
+			Render("components/auth-error", fiber.Map{"Errors": []string{err.Error()}})
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/")
@@ -55,16 +55,15 @@ func (h *UsersHandler) Register(c *fiber.Ctx) error {
 	err := h.service.Register(registerReq)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Errors": []string{err.Error()}})
+			Render("components/auth-error", fiber.Map{"Errors": []string{err.Error()}})
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/login")
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (h *UsersHandler) Logout(c *fiber.Ctx) error { // TODO: working on clearing cookies
+func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 	h.service.ClearToken(c)
-	println("cookies: ", c.Cookies("access_token"), " | ", c.Cookies("refresh_token"))
 
 	c.Response().Header.Set("HX-Redirect", "/login")
 	return c.SendStatus(fiber.StatusOK)

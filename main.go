@@ -6,6 +6,7 @@ import (
 	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/books"
 	"github.com/DeepAung/gofiber-library/modules/users"
+	"github.com/DeepAung/gofiber-library/modules/views"
 	"github.com/DeepAung/gofiber-library/pkg/databases"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -41,13 +42,14 @@ func main() {
 }
 
 func (s *Server) initRoutes() {
-	api := s.App.Group("/api")
+	apiGroup := s.App.Group("/api")
 
 	myvalidator := utils.NewMyValidator()
 	usersService := users.NewUsersService(s.DB, s.Cfg)
-	users.NewUsersHandler(api, myvalidator, usersService)
+	users.NewUsersHandler(apiGroup, myvalidator, usersService)
 
 	booksService := books.NewBooksService(s.DB)
-	books.NewBooksHandler(booksService)
+	// books.NewBooksHandler(booksService)
 
+	views.NewViewsHandler(s.App, usersService, booksService, s.Cfg)
 }

@@ -135,21 +135,21 @@ func (s *UsersService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
 func (s *UsersService) ClearToken(c *fiber.Ctx) {
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
-		Value:    "",
+		Value:    "deleted",
 		Expires:  time.Now().Add(-2 * time.Hour),
 		HTTPOnly: true,
 		Secure:   true,
+		Path:     "/",
 	})
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "refresh_token",
-		Value:    "",
+		Value:    "deleted",
 		Expires:  time.Now().Add(-2 * time.Hour),
 		HTTPOnly: true,
 		Secure:   true,
+		Path:     "/",
 	})
-
-	c.ClearCookie("access_token", "refresh_token")
 }
 
 func (s *UsersService) GenerateAccessToken(userId uint, username string) (string, error) {
