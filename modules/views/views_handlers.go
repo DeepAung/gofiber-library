@@ -13,6 +13,7 @@ import (
 type ViewsHandler struct {
 	usersService *users.UsersService
 	booksService *books.BooksService
+	mid          *middlewares.Middleware
 	cfg          *configs.Config
 }
 
@@ -20,18 +21,20 @@ func NewViewsHandler(
 	r fiber.Router,
 	usersService *users.UsersService,
 	booksService *books.BooksService,
+	mid *middlewares.Middleware,
 	cfg *configs.Config,
 ) {
 	h := &ViewsHandler{
 		usersService: usersService,
 		booksService: booksService,
+		mid:          mid,
 		cfg:          cfg,
 	}
 
 	r.Get("/login", h.LoginView)
 	r.Get("/register", h.RegisterView)
 
-	middlewares.UseAuthMiddleware(r, cfg, usersService)
+	r.Use(mid.JwtAuth(usersService))
 	r.Get("/", h.IndexView)
 	r.Get("/admin", h.AdminView)
 }
@@ -42,8 +45,11 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
+	payload, err := h.usersService.VerifyTokenByCookie(c)
+
 	return c.Render("index", fiber.Map{
-		"IsAuthenticated": h.usersService.IsAuthenticated(c),
+		"IsAuthenticated": err == nil,
+		"Payload":         payload,
 		"Books":           books,
 	},
 		"layouts/main",
@@ -59,16 +65,22 @@ func (h *ViewsHandler) AdminView(c *fiber.Ctx) error { // TODO: add admin view
 }
 
 func (h *ViewsHandler) LoginView(c *fiber.Ctx) error {
+	payload, err := h.usersService.VerifyTokenByCookie(c)
+
 	return c.Render("login", fiber.Map{
-		"IsAuthenticated": h.usersService.IsAuthenticated(c),
+		"IsAuthenticated": err == nil,
+		"Payload":         payload,
 	},
 		"layouts/main",
 	)
 }
 
 func (h *ViewsHandler) RegisterView(c *fiber.Ctx) error {
+	payload, err := h.usersService.VerifyTokenByCookie(c)
+
 	return c.Render("register", fiber.Map{
-		"IsAuthenticated": h.usersService.IsAuthenticated(c),
+		"IsAuthenticated": err == nil,
+		"Payload":         payload,
 	},
 		"layouts/main",
 	)

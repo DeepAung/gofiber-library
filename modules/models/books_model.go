@@ -8,7 +8,7 @@ type Book struct {
 	Author        string `json:"author"`
 	Desc          string `json:"description"`
 	Content       string `json:"content"`
-	FavoriteCount int    `json:"favoriteCount"` // TODO: default zero and fill up other param
+	FavoriteCount int    `json:"favoriteCount" gorm:"default:0"`
 }
 
 type CreateBookReq struct {

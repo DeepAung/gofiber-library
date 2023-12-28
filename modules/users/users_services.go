@@ -24,8 +24,8 @@ func NewUsersService(db *gorm.DB, cfg *configs.Config) *UsersService {
 	}
 }
 
-const AccessTokenExpTime = 24 * time.Hour // TODO: change to 15 * time.Minute
-const RefreshTokenExpTime = 30 * 24 * time.Hour
+const AccessTokenExpTime = 15 * time.Minute
+const RefreshTokenExpTime = 7 * 24 * time.Hour
 
 func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 	user := new(models.User)
@@ -40,12 +40,12 @@ func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 		return fmt.Errorf("password incorrect")
 	}
 
-	accessToken, err := s.GenerateAccessToken(user.ID, user.Username)
+	accessToken, err := s.GenerateAccessToken(int(user.ID), user.Username)
 	if err != nil {
 		return err
 	}
 
-	refreshToken, err := s.GenerateRefreshToken(user.ID, user.Username)
+	refreshToken, err := s.GenerateRefreshToken(int(user.ID), user.Username)
 	if err != nil {
 		return err
 	}
@@ -68,11 +68,7 @@ func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 		Path:     "/",
 	})
 
-	fmt.Printf(
-		"accesstoken: %s | refreshtoken: %s\n",
-		c.Cookies("access_token"),
-		c.Cookies("refresh_token"),
-	)
+	s.setRefreshToken(int(user.ID), refreshToken)
 
 	return nil
 }
@@ -99,37 +95,66 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 	return nil
 }
 
-// func (s *UsersService) RefreshToken(c *fiber.Ctx) error { // TODO
-//
-// }
+func (s *UsersService) UpdateRefreshToken(c *fiber.Ctx) error { // TODO
+	payload, err := s.VerifyTokenByCookie(c)
+	if err != nil {
+		return err
+	}
+
+	cookieRefreshToken := c.Cookies("refresh_token")
+	dbRefreshToken := ""
+	s.db.Model(&models.User{}).
+		Where("id = ?", payload.ID).
+		Select("refresh_token").
+		First(&dbRefreshToken)
+
+	if cookieRefreshToken != dbRefreshToken {
+		return fmt.Errorf("incorrect refresh token")
+	}
+
+	newRefreshToken, err := s.GenerateRefreshToken(payload.ID, payload.Username)
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		Expires:  time.Now().Add(RefreshTokenExpTime),
+		HTTPOnly: true,
+		Secure:   true,
+		Path:     "/",
+	})
+
+	return s.setRefreshToken(payload.ID, newRefreshToken)
+}
 
 // ---------------------------------------------------- //
 
-func (s *UsersService) IsAuthenticated(c *fiber.Ctx) bool {
+func (s *UsersService) VerifyTokenByCookie(c *fiber.Ctx) (*models.JwtPayload, error) {
 	accessToken := c.Cookies("access_token")
 	if accessToken == "" {
-		return false
+		return nil, fmt.Errorf("token not found")
 	}
 
-	_, err := s.VerifyToken(accessToken)
-	return err == nil
+	return s.verifyToken(accessToken)
 }
 
-func (s *UsersService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-		return []byte(s.cfg.JwtSecret), nil
-	})
+func (s *UsersService) verifyToken(tokenString string) (*models.JwtPayload, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&models.JwtClaim{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(s.cfg.JwtSecret), nil
+		},
+	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*models.JwtClaim)
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
 
-	return claims, nil
+	return &claims.Payload, nil
 }
 
 func (s *UsersService) ClearToken(c *fiber.Ctx) {
@@ -152,26 +177,36 @@ func (s *UsersService) ClearToken(c *fiber.Ctx) {
 	})
 }
 
-func (s *UsersService) GenerateAccessToken(userId uint, username string) (string, error) {
+func (s *UsersService) setRefreshToken(id int, refreshToken string) error {
+	return s.db.
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Update("refresh_token", refreshToken).
+		Error
+}
+
+func (s *UsersService) GenerateAccessToken(userId int, username string) (string, error) {
 	return s.generateToken(userId, username, AccessTokenExpTime)
 }
 
-func (s *UsersService) GenerateRefreshToken(userId uint, username string) (string, error) {
+func (s *UsersService) GenerateRefreshToken(userId int, username string) (string, error) {
 	return s.generateToken(userId, username, RefreshTokenExpTime)
 }
 
 func (s *UsersService) generateToken(
-	userId uint,
+	userId int,
 	username string,
 	expTime time.Duration,
 ) (string, error) {
-	claims := jwt.MapClaims{
-		"id":       userId,
-		"username": username,
-		"exp":      time.Now().Add(expTime).Unix(),
+	claims := models.JwtClaim{
+		Payload: models.JwtPayload{
+			ID:       userId,
+			Username: username,
+			Exp:      time.Now().Add(expTime).Unix(),
+		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 	return token.SignedString([]byte(s.cfg.JwtSecret))
 }
 

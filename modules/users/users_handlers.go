@@ -20,6 +20,7 @@ func NewUsersHandler(r fiber.Router, validator *utils.MyValidator, service *User
 	r.Post("/login", h.Login)
 	r.Post("/register", h.Register)
 	r.Post("/logout", h.Logout)
+	r.Post("/refresh", h.UpdateRefreshToken)
 }
 
 func (h *UsersHandler) Login(c *fiber.Ctx) error {
@@ -66,5 +67,14 @@ func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 	h.service.ClearToken(c)
 
 	c.Response().Header.Set("HX-Redirect", "/login")
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (h *UsersHandler) UpdateRefreshToken(c *fiber.Ctx) error {
+	err := h.service.UpdateRefreshToken(c)
+	if err != nil {
+		return err
+	}
+
 	return c.SendStatus(fiber.StatusOK)
 }
