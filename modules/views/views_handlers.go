@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/books"
@@ -37,6 +38,7 @@ func NewViewsHandler(
 
 	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
 	r.Get("/", onlyAuthorized, h.IndexView)
+	r.Get("/books/:id", onlyAuthorized, h.DetailView)
 	r.Get("/admin", onlyAuthorized, h.AdminView)
 }
 
@@ -50,6 +52,26 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 		"IsAuthenticated": true,
 		"Payload":         c.Locals("payload"),
 		"Books":           books,
+	},
+		"layouts/main",
+	)
+}
+
+func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return fmt.Errorf("id should be integer")
+	}
+
+	book, err := h.booksService.GetBook(id)
+	if err != nil {
+		return err
+	}
+
+	return c.Render("detail", fiber.Map{
+		"IsAuthenticated": true,
+		"Payload":         c.Locals("payload"),
+		"Book":            book,
 	},
 		"layouts/main",
 	)

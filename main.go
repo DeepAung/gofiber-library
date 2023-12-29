@@ -55,7 +55,7 @@ func (s *Server) initRoutes() {
 	users.NewUsersHandler(apiGroup, myvalidator, usersService)
 
 	booksService := books.NewBooksService(s.DB)
-	// books.NewBooksHandler(booksService)
+	books.NewBooksHandler(apiGroup, myvalidator, booksService, usersService)
 
 	dummyGroup := s.App.Group("/dummy")
 	dummy.NewDummyHandler(dummyGroup, s.DB)
@@ -63,6 +63,14 @@ func (s *Server) initRoutes() {
 	views.NewViewsHandler(s.App, usersService, booksService, s.Mid, s.Cfg)
 
 	s.App.Use(func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusNotFound)
+		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
+
+		return c.Render("error", fiber.Map{
+			"IsAuthenticated": err == nil,
+			"Payload":         payload,
+		},
+			"layouts/main",
+		)
+
 	})
 }

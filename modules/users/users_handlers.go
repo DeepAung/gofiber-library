@@ -4,6 +4,7 @@ import (
 	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 type UsersHandler struct {
@@ -73,6 +74,7 @@ func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 func (h *UsersHandler) UpdateRefreshToken(c *fiber.Ctx) error {
 	err := h.service.UpdateRefreshToken(c)
 	if err != nil {
+		log.Error("ERROR: ", err)
 		return err
 	}
 

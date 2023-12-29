@@ -1,3 +1,21 @@
-<h1>Go Library Website</h1>
-
-<div>{{ .Books }}</div>
+<div class="p-5 flex flex-wrap gap-5 justify-center">
+  {{range .Books}}
+  <!-- hx post -->
+  <a
+    href="/books/{{.ID}}"
+    class="block card sm:w-[15rem] w-full h-[20rem] bg-neutral text-white cursor-pointer shadow-black hover:shadow-2xl transition-shadow"
+  >
+    <div class="card-body">
+      <h2 class="card-title">{{.Title}}</h2>
+      <div>
+        <p>Author: {{.Author}}</p>
+        <p>{{.Desc}}</p>
+      </div>
+      <!-- hx post -->
+      <div class="card-actions justify-end">
+        <span class="btn">{{.FavoriteCount}}</span>
+      </div>
+    </div>
+  </a>
+  {{end}}
+</div>

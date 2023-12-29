@@ -14,6 +14,11 @@ type User struct {
 	FavBooks     []Book `json:"favoriteBooks" gorm:"many2many:user_favbooks"`
 }
 
+type UserFavbooks struct {
+	UserID int `gorm:"primaryKey"`
+	BookID int `gorm:"primaryKey"`
+}
+
 type LoginReq struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`

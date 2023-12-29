@@ -30,6 +30,11 @@ func NewDB(cfg *configs.Config) *gorm.DB {
 	}
 	println("DB opened")
 
+	err = models.InitModel(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db.AutoMigrate(&models.User{}, &models.Book{})
 	println("DB auto migrated")
 

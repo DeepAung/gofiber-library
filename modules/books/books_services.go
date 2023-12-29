@@ -53,6 +53,37 @@ func (s *BooksService) UpdateBook(book *models.Book, id int) (*models.Book, erro
 	return book, nil
 }
 
+func (s *BooksService) ToggleFavoriteBook(userId int, bookId int) (bool, error) {
+	// user := new(models.User)
+	// err := s.db.
+	// 	Model(&models.User{}).
+	// 	Preload("FavBooks").
+	// 	Where("id = ?", userId).
+	// 	Find(user).
+	// 	Error
+
+	return false, nil
+	//
+	// var data interface{}
+	// s.db.Table("user_favbooks").Where("user_id = ? AND book_id = ?", userId, bookId).Find(data)
+	//
+	// if err != nil {
+	// 	return false, err
+	// }
+	//
+	// has := utils.Has(user.FavBooks, func(book *models.Book) bool {
+	// 	return int(book.ID) == bookId
+	// })
+	//
+	// if has {
+	// 	err = s.db.Table("user_favbooks")
+	// } else {
+	//
+	// }
+	//
+	// return false, nil
+}
+
 func (s *BooksService) DeleteBook(id int) error {
 	result := s.db.Delete(&models.Book{}, id)
 	if result.RowsAffected == 0 {
