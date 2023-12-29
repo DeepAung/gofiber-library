@@ -95,13 +95,14 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 	return nil
 }
 
-func (s *UsersService) UpdateRefreshToken(c *fiber.Ctx) error { // TODO
-	payload, err := s.VerifyTokenByCookie(c)
+func (s *UsersService) UpdateRefreshToken(c *fiber.Ctx) error {
+	cookieRefreshToken := c.Cookies("refresh_token")
+
+	payload, err := s.VerifyToken(cookieRefreshToken)
 	if err != nil {
 		return err
 	}
 
-	cookieRefreshToken := c.Cookies("refresh_token")
 	dbRefreshToken := ""
 	s.db.Model(&models.User{}).
 		Where("id = ?", payload.ID).
@@ -127,16 +128,19 @@ func (s *UsersService) UpdateRefreshToken(c *fiber.Ctx) error { // TODO
 
 // ---------------------------------------------------- //
 
-func (s *UsersService) VerifyTokenByCookie(c *fiber.Ctx) (*models.JwtPayload, error) {
-	accessToken := c.Cookies("access_token")
-	if accessToken == "" {
+func (s *UsersService) VerifyTokenByCookie(
+	c *fiber.Ctx,
+	cookieName string,
+) (*models.JwtPayload, error) {
+	tokenString := c.Cookies(cookieName)
+	if tokenString == "" {
 		return nil, fmt.Errorf("token not found")
 	}
 
-	return s.verifyToken(accessToken)
+	return s.VerifyToken(tokenString)
 }
 
-func (s *UsersService) verifyToken(tokenString string) (*models.JwtPayload, error) {
+func (s *UsersService) VerifyToken(tokenString string) (*models.JwtPayload, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&models.JwtClaim{},

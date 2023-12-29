@@ -31,12 +31,13 @@ func NewViewsHandler(
 		cfg:          cfg,
 	}
 
-	r.Get("/login", h.LoginView)
-	r.Get("/register", h.RegisterView)
+	onlyUnauthorized := mid.OnlyUnauthorizedAuth(usersService)
+	r.Get("/login", onlyUnauthorized, h.LoginView)
+	r.Get("/register", onlyUnauthorized, h.RegisterView)
 
-	r.Use(mid.JwtAuth(usersService))
-	r.Get("/", h.IndexView)
-	r.Get("/admin", h.AdminView)
+	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
+	r.Get("/", onlyAuthorized, h.IndexView)
+	r.Get("/admin", onlyAuthorized, h.AdminView)
 }
 
 func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
@@ -45,11 +46,9 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	payload, err := h.usersService.VerifyTokenByCookie(c)
-
 	return c.Render("index", fiber.Map{
-		"IsAuthenticated": err == nil,
-		"Payload":         payload,
+		"IsAuthenticated": true,
+		"Payload":         c.Locals("payload"),
 		"Books":           books,
 	},
 		"layouts/main",
@@ -65,22 +64,18 @@ func (h *ViewsHandler) AdminView(c *fiber.Ctx) error { // TODO: add admin view
 }
 
 func (h *ViewsHandler) LoginView(c *fiber.Ctx) error {
-	payload, err := h.usersService.VerifyTokenByCookie(c)
-
 	return c.Render("login", fiber.Map{
-		"IsAuthenticated": err == nil,
-		"Payload":         payload,
+		"IsAuthenticated": false,
+		"Payload":         nil,
 	},
 		"layouts/main",
 	)
 }
 
 func (h *ViewsHandler) RegisterView(c *fiber.Ctx) error {
-	payload, err := h.usersService.VerifyTokenByCookie(c)
-
 	return c.Render("register", fiber.Map{
-		"IsAuthenticated": err == nil,
-		"Payload":         payload,
+		"IsAuthenticated": false,
+		"Payload":         nil,
 	},
 		"layouts/main",
 	)
