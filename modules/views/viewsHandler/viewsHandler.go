@@ -6,6 +6,7 @@ import (
 
 	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/books/booksService"
+	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/gofiber/fiber/v2"
@@ -64,15 +65,23 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 		return fmt.Errorf("id should be integer")
 	}
 
+	payload, ok := c.Locals("payload").(*models.JwtPayload)
+	if !ok {
+		return fmt.Errorf("authorization error")
+	}
+
 	book, err := h.booksService.GetBook(id)
 	if err != nil {
 		return err
 	}
 
+	isFavorite, err := h.booksService.GetIsFavorite(payload.ID, id)
+
 	return c.Render("detail", fiber.Map{
 		"IsAuthenticated": true,
-		"Payload":         c.Locals("payload"),
+		"Payload":         payload,
 		"Book":            book,
+		"IsFavorite":      isFavorite,
 	},
 		"layouts/main",
 	)

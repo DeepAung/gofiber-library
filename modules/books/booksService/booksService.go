@@ -1,6 +1,7 @@
 package booksService
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/DeepAung/gofiber-library/modules/models"
@@ -27,6 +28,7 @@ func (s *BooksService) GetBooks() (*[]models.Book, error) {
 	return books, nil
 }
 
+// TODO: also return if it is userfavbooks
 func (s *BooksService) GetBook(id int) (*models.Book, error) {
 	book := new(models.Book)
 	if err := s.db.First(book, id).Error; err != nil {
@@ -53,37 +55,6 @@ func (s *BooksService) UpdateBook(book *models.Book, id int) (*models.Book, erro
 	return book, nil
 }
 
-func (s *BooksService) ToggleFavoriteBook(userId int, bookId int) (bool, error) {
-	// user := new(models.User)
-	// err := s.db.
-	// 	Model(&models.User{}).
-	// 	Preload("FavBooks").
-	// 	Where("id = ?", userId).
-	// 	Find(user).
-	// 	Error
-
-	return false, nil
-	//
-	// var data interface{}
-	// s.db.Table("user_favbooks").Where("user_id = ? AND book_id = ?", userId, bookId).Find(data)
-	//
-	// if err != nil {
-	// 	return false, err
-	// }
-	//
-	// has := utils.Has(user.FavBooks, func(book *models.Book) bool {
-	// 	return int(book.ID) == bookId
-	// })
-	//
-	// if has {
-	// 	err = s.db.Table("user_favbooks")
-	// } else {
-	//
-	// }
-	//
-	// return false, nil
-}
-
 func (s *BooksService) DeleteBook(id int) error {
 	result := s.db.Delete(&models.Book{}, id)
 	if result.RowsAffected == 0 {
@@ -91,4 +62,50 @@ func (s *BooksService) DeleteBook(id int) error {
 	}
 
 	return nil
+}
+
+func (s *BooksService) GetIsFavorite(userId int, bookId int) (bool, error) {
+	err := s.db.First(&models.UserFavbooks{UserID: userId, BookID: bookId}).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (s *BooksService) ToggleFavoriteBook(userId int, bookId int) (bool, error) {
+	isFavorite, err := s.GetIsFavorite(userId, bookId)
+	if err != nil {
+		return false, err
+	}
+
+	if isFavorite {
+		return s.UnfavoriteBook(userId, bookId)
+	} else {
+		return s.FavoriteBook(userId, bookId)
+	}
+}
+
+// TODO: handle errors
+func (s *BooksService) FavoriteBook(userId int, bookId int) (bool, error) {
+	s.db.Create(&models.UserFavbooks{UserID: userId, BookID: bookId})
+	s.db.Model(&models.Book{}).
+		Where("id = ?", bookId).
+		Update("favorite_count", gorm.Expr("favorite_count + ?", 1))
+
+	return true, nil
+}
+
+// TODO: handle errors
+func (s *BooksService) UnfavoriteBook(userId int, bookId int) (bool, error) {
+	s.db.Delete(&models.UserFavbooks{UserID: userId, BookID: bookId})
+	s.db.Model(&models.Book{}).
+		Where("id = ?", bookId).
+		Update("favorite_count", gorm.Expr("favorite_count - ?", 1))
+
+	return false, nil
 }

@@ -1,17 +1,12 @@
-<div class="sm:w-[30rem] w-full flex flex-col p-3 mx-auto gap-3">
+<div class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
   <h1 class="text-5xl font-bold text-center">{{.Book.Title}}</h1>
-  <p class="text-end italic mt-4 mb-6">
-    Created by {{.Book.Author}}
-    <span
-      hx-post="/api/books/{{.Book.ID}}/favorite"
-      class="fa fa-star checked ml-8 cursor-pointer"
-    ></span>
-    {{.Book.FavoriteCount}}
+  <p class="text-end italic mt-6 mb-4">
+    Created by {{.Book.Author}} {{template "components/star" .}}
   </p>
 
-  <h2 class="text-3xl font-semibold">Description</h2>
-  <p>{{.Book.Desc}}</p>
+  <p class="italic">{{.Book.Desc}}</p>
 
-  <h2 class="text-3xl font-semibold">Content</h2>
+  <hr class="mb-3" />
+
   <span class="block"> {{.Book.Content}} </span>
 </div>

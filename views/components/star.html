@@ -1,5 +1,9 @@
-{{if .Toggled}}
-<span class="fa fa-star checked ml-8"></span>
-{{else}}
-<span class="fa fa-star ml-8"></span>
-{{end}}
+<span id="star" class="ml-8">
+  <span
+    hx-post="/api/books/{{.Book.ID}}/favorite"
+    hx-target="#star"
+    hx-swap="outerHTML"
+    class="fa-star cursor-pointer {{if .IsFavorite}}fa-solid{{else}}fa-regular{{end}}"
+  ></span>
+  {{.Book.FavoriteCount}}
+</span>

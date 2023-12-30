@@ -1409,8 +1409,12 @@ html {
   margin-bottom: 0.75rem;
 }
 
-.mb-6 {
-  margin-bottom: 1.5rem;
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
 }
 
 .ml-8 {
@@ -1421,8 +1425,8 @@ html {
   margin-top: 0.75rem;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.mt-6 {
+  margin-top: 1.5rem;
 }
 
 .block {
@@ -1541,11 +1545,6 @@ html {
   line-height: 2rem;
 }
 
-.text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
-}
-
 .text-4xl {
   font-size: 2.25rem;
   line-height: 2.5rem;
@@ -1641,5 +1640,9 @@ html {
 
   .sm\:w-\[30rem\] {
     width: 30rem;
+  }
+
+  .sm\:w-\[35rem\] {
+    width: 35rem;
   }
 }

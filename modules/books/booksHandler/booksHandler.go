@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/DeepAung/gofiber-library/modules/books/booksService"
+	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
@@ -43,26 +44,31 @@ func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
 }
 
 func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {
-	println("testtttttttttttttttt")
 	bookId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		return fmt.Errorf("id should be integer")
 	}
 
-	payload, err := h.usersService.VerifyTokenByCookie(c, "access_token")
+	book, err := h.booksService.GetBook(bookId)
+	if err != nil {
+		return fmt.Errorf("book not found")
+	}
+
+	payload, ok := c.Locals("payload").(*models.JwtPayload)
+	if !ok {
+		return fmt.Errorf("authorization error")
+	}
+
+	isFavorite, err := h.booksService.ToggleFavoriteBook(payload.ID, bookId)
 	if err != nil {
 		return err
 	}
-	userId := payload.ID
 
-	toggled, err := h.booksService.ToggleFavoriteBook(userId, bookId)
-	if err != nil {
-		return err
+	if isFavorite {
+		book.FavoriteCount += 1
+	} else {
+		book.FavoriteCount -= 1
 	}
 
-	return c.Render("components/star", &fiber.Map{
-		"Toggled": toggled,
-	},
-		"layouts/main",
-	)
+	return c.Render("components/star", &fiber.Map{"Book": book, "IsFavorite": isFavorite})
 }

@@ -14,15 +14,21 @@ func NewMiddleware() *Middleware {
 func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
-
-		if err != nil {
-			err = usersService.UpdateTokens(c)
+		if err == nil {
+			c.Locals("payload", payload)
+			return c.Next()
 		}
 
+		err = usersService.UpdateTokens(c)
 		if err != nil {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")
-		} else {
+		}
+
+		payload, err = usersService.VerifyTokenByCookie(c, "access_token")
+		if err != nil {
+			usersService.ClearToken(c)
+			return c.Redirect("/login")
 		}
 
 		c.Locals("payload", payload)
