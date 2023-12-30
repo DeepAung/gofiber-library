@@ -16,8 +16,13 @@ func (m *Middleware) JwtAccessTokenAuth(usersService *users.UsersService) fiber.
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
 
 		if err != nil {
+			err = usersService.UpdateTokens(c)
+		}
+
+		if err != nil {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")
+		} else {
 		}
 
 		c.Locals("payload", payload)

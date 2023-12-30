@@ -40,35 +40,23 @@ func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 		return fmt.Errorf("password incorrect")
 	}
 
-	accessToken, err := s.GenerateAccessToken(int(user.ID), user.Username)
+	accessToken, err := s.generateToken(int(user.ID), user.Username, AccessTokenExpTime)
 	if err != nil {
 		return err
 	}
 
-	refreshToken, err := s.GenerateRefreshToken(int(user.ID), user.Username)
+	refreshToken, err := s.generateToken(int(user.ID), user.Username, RefreshTokenExpTime)
 	if err != nil {
 		return err
 	}
 
-	c.Cookie(&fiber.Cookie{
-		Name:     "access_token",
-		Value:    accessToken,
-		Expires:  time.Now().Add(AccessTokenExpTime),
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-	})
+	err = s.updateDbRefreshToken(int(user.ID), refreshToken)
+	if err != nil {
+		return err
+	}
 
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		Expires:  time.Now().Add(RefreshTokenExpTime),
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-	})
-
-	s.setRefreshToken(int(user.ID), refreshToken)
+	s.setCookie(c, "access_token", accessToken, AccessTokenExpTime)
+	s.setCookie(c, "refresh_token", refreshToken, RefreshTokenExpTime)
 
 	return nil
 }
@@ -95,35 +83,46 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 	return nil
 }
 
-func (s *UsersService) UpdateRefreshToken(c *fiber.Ctx) error {
+func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
 	cookieRefreshToken := c.Cookies("refresh_token")
-
 	payload, err := s.VerifyToken(cookieRefreshToken)
 	if err != nil {
 		return err
 	}
 
 	dbRefreshToken := ""
-	s.db.Model(&models.User{}).
+	err = s.db.Model(&models.User{}).
 		Where("id = ?", payload.ID).
 		Select("refresh_token").
-		First(&dbRefreshToken)
+		First(&dbRefreshToken).
+		Error
+	if err != nil {
+		return err
+	}
 
 	if cookieRefreshToken != dbRefreshToken {
 		return fmt.Errorf("incorrect refresh token")
 	}
 
-	newRefreshToken, err := s.GenerateRefreshToken(payload.ID, payload.Username)
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    newRefreshToken,
-		Expires:  time.Now().Add(RefreshTokenExpTime),
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-	})
+	newAccessToken, err := s.generateToken(payload.ID, payload.Username, AccessTokenExpTime)
+	if err != nil {
+		return err
+	}
 
-	return s.setRefreshToken(payload.ID, newRefreshToken)
+	newRefreshToken, err := s.generateToken(payload.ID, payload.Username, RefreshTokenExpTime)
+	if err != nil {
+		return err
+	}
+
+	err = s.updateDbRefreshToken(payload.ID, newRefreshToken)
+	if err != nil {
+		return err
+	}
+
+	s.setCookie(c, "access_token", newAccessToken, AccessTokenExpTime)
+	s.setCookie(c, "refresh_token", newRefreshToken, RefreshTokenExpTime)
+
+	return nil
 }
 
 // ---------------------------------------------------- //
@@ -162,39 +161,32 @@ func (s *UsersService) VerifyToken(tokenString string) (*models.JwtPayload, erro
 }
 
 func (s *UsersService) ClearToken(c *fiber.Ctx) {
-	c.Cookie(&fiber.Cookie{
-		Name:     "access_token",
-		Value:    "deleted",
-		Expires:  time.Now().Add(-2 * time.Hour),
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-	})
+	s.setCookie(c, "access_token", "deleted", -2*time.Hour)
+	s.setCookie(c, "refresh_token", "deleted", -2*time.Hour)
+}
 
+func (s *UsersService) setCookie(
+	c *fiber.Ctx,
+	name string,
+	value string,
+	expTime time.Duration,
+) {
 	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    "deleted",
-		Expires:  time.Now().Add(-2 * time.Hour),
+		Name:     name,
+		Value:    value,
+		Expires:  time.Now().Add(expTime),
 		HTTPOnly: true,
 		Secure:   true,
 		Path:     "/",
 	})
 }
 
-func (s *UsersService) setRefreshToken(id int, refreshToken string) error {
+func (s *UsersService) updateDbRefreshToken(id int, refreshToken string) error {
 	return s.db.
 		Model(&models.User{}).
 		Where("id = ?", id).
 		Update("refresh_token", refreshToken).
 		Error
-}
-
-func (s *UsersService) GenerateAccessToken(userId int, username string) (string, error) {
-	return s.generateToken(userId, username, AccessTokenExpTime)
-}
-
-func (s *UsersService) GenerateRefreshToken(userId int, username string) (string, error) {
-	return s.generateToken(userId, username, RefreshTokenExpTime)
 }
 
 func (s *UsersService) generateToken(

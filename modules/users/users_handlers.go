@@ -21,7 +21,7 @@ func NewUsersHandler(r fiber.Router, validator *utils.MyValidator, service *User
 	r.Post("/login", h.Login)
 	r.Post("/register", h.Register)
 	r.Post("/logout", h.Logout)
-	r.Post("/refresh", h.UpdateRefreshToken)
+	r.Post("/refresh", h.UpdateTokens)
 }
 
 func (h *UsersHandler) Login(c *fiber.Ctx) error {
@@ -71,8 +71,8 @@ func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (h *UsersHandler) UpdateRefreshToken(c *fiber.Ctx) error {
-	err := h.service.UpdateRefreshToken(c)
+func (h *UsersHandler) UpdateTokens(c *fiber.Ctx) error {
+	err := h.service.UpdateTokens(c)
 	if err != nil {
 		log.Error("ERROR: ", err)
 		return err
