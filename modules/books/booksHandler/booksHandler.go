@@ -1,34 +1,41 @@
-package books
+package booksHandler
 
 import (
 	"fmt"
 	"strconv"
 
-	"github.com/DeepAung/gofiber-library/modules/users"
+	"github.com/DeepAung/gofiber-library/modules/books/booksService"
+	"github.com/DeepAung/gofiber-library/modules/users/usersService"
+	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
 type BooksHandler struct {
 	validator    *utils.MyValidator
-	booksService *BooksService
-	usersService *users.UsersService
+	booksService *booksService.BooksService
+	usersService *usersService.UsersService
+	mid          *middlewares.Middleware
 }
 
 func NewBooksHandler(
 	r fiber.Router,
 	validator *utils.MyValidator,
-	booksService *BooksService,
-	usersService *users.UsersService,
+	booksService *booksService.BooksService,
+	usersService *usersService.UsersService,
+	mid *middlewares.Middleware,
 ) {
 	h := &BooksHandler{
 		validator:    validator,
 		booksService: booksService,
 		usersService: usersService,
+		mid:          mid,
 	}
 
-	r.Post("/books", h.CreateBook)
-	r.Post("/books/:id/favorite", h.ToggleFavoriteBook)
+	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
+
+	r.Post("/books", onlyAuthorized, h.CreateBook)
+	r.Post("/books/:id/favorite", onlyAuthorized, h.ToggleFavoriteBook)
 }
 
 func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {

@@ -1,4 +1,4 @@
-package users
+package usersService
 
 import (
 	"fmt"
@@ -36,27 +36,39 @@ func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 		return fmt.Errorf("user not found")
 	}
 
-	if !s.checkPassword(loginReq.Password, user.Password) {
+	if !s.CheckPassword(loginReq.Password, user.Password) {
 		return fmt.Errorf("password incorrect")
 	}
 
-	accessToken, err := s.generateToken(int(user.ID), user.Username, AccessTokenExpTime)
+	accessToken, err := s.GenerateToken(
+		int(user.ID),
+		user.Username,
+		AccessTokenExpTime,
+	)
 	if err != nil {
 		return err
 	}
 
-	refreshToken, err := s.generateToken(int(user.ID), user.Username, RefreshTokenExpTime)
+	refreshToken, err := s.GenerateToken(
+		int(user.ID),
+		user.Username,
+		RefreshTokenExpTime,
+	)
 	if err != nil {
 		return err
 	}
 
-	err = s.updateDbRefreshToken(int(user.ID), refreshToken)
+	err = s.db.
+		Model(&models.User{}).
+		Where("id = ?", user.ID).
+		Update("refresh_token", refreshToken).
+		Error
 	if err != nil {
 		return err
 	}
 
-	s.setCookie(c, "access_token", accessToken, AccessTokenExpTime)
-	s.setCookie(c, "refresh_token", refreshToken, RefreshTokenExpTime)
+	s.SetCookie(c, "access_token", accessToken, AccessTokenExpTime)
+	s.SetCookie(c, "refresh_token", refreshToken, RefreshTokenExpTime)
 
 	return nil
 }
@@ -66,7 +78,7 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 		return fmt.Errorf("password is not the same")
 	}
 
-	hashedPassword, err := s.hashPassword(registerReq.Password)
+	hashedPassword, err := s.HashPassword(registerReq.Password)
 	if err != nil {
 		return err
 	}
@@ -104,28 +116,38 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
 		return fmt.Errorf("incorrect refresh token")
 	}
 
-	newAccessToken, err := s.generateToken(payload.ID, payload.Username, AccessTokenExpTime)
+	newAccessToken, err := s.GenerateToken(
+		payload.ID,
+		payload.Username,
+		AccessTokenExpTime,
+	)
 	if err != nil {
 		return err
 	}
 
-	newRefreshToken, err := s.generateToken(payload.ID, payload.Username, RefreshTokenExpTime)
+	newRefreshToken, err := s.GenerateToken(
+		payload.ID,
+		payload.Username,
+		RefreshTokenExpTime,
+	)
 	if err != nil {
 		return err
 	}
 
-	err = s.updateDbRefreshToken(payload.ID, newRefreshToken)
+	err = s.db.
+		Model(&models.User{}).
+		Where("id = ?", payload.ID).
+		Update("refresh_token", newRefreshToken).
+		Error
 	if err != nil {
 		return err
 	}
 
-	s.setCookie(c, "access_token", newAccessToken, AccessTokenExpTime)
-	s.setCookie(c, "refresh_token", newRefreshToken, RefreshTokenExpTime)
+	s.SetCookie(c, "access_token", newAccessToken, AccessTokenExpTime)
+	s.SetCookie(c, "refresh_token", newRefreshToken, RefreshTokenExpTime)
 
 	return nil
 }
-
-// ---------------------------------------------------- //
 
 func (s *UsersService) VerifyTokenByCookie(
 	c *fiber.Ctx,
@@ -161,11 +183,11 @@ func (s *UsersService) VerifyToken(tokenString string) (*models.JwtPayload, erro
 }
 
 func (s *UsersService) ClearToken(c *fiber.Ctx) {
-	s.setCookie(c, "access_token", "deleted", -2*time.Hour)
-	s.setCookie(c, "refresh_token", "deleted", -2*time.Hour)
+	s.SetCookie(c, "access_token", "deleted", -2*time.Hour)
+	s.SetCookie(c, "refresh_token", "deleted", -2*time.Hour)
 }
 
-func (s *UsersService) setCookie(
+func (s *UsersService) SetCookie(
 	c *fiber.Ctx,
 	name string,
 	value string,
@@ -181,15 +203,7 @@ func (s *UsersService) setCookie(
 	})
 }
 
-func (s *UsersService) updateDbRefreshToken(id int, refreshToken string) error {
-	return s.db.
-		Model(&models.User{}).
-		Where("id = ?", id).
-		Update("refresh_token", refreshToken).
-		Error
-}
-
-func (s *UsersService) generateToken(
+func (s *UsersService) GenerateToken(
 	userId int,
 	username string,
 	expTime time.Duration,
@@ -206,12 +220,12 @@ func (s *UsersService) generateToken(
 	return token.SignedString([]byte(s.cfg.JwtSecret))
 }
 
-func (s *UsersService) hashPassword(password string) (string, error) {
+func (s *UsersService) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
 
-func (s *UsersService) checkPassword(password string, hashedPassword string) bool {
+func (s *UsersService) CheckPassword(password string, hashedPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
 }

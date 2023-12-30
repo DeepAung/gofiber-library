@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/DeepAung/gofiber-library/modules/users"
+	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -11,7 +11,7 @@ func NewMiddleware() *Middleware {
 	return &Middleware{}
 }
 
-func (m *Middleware) JwtAccessTokenAuth(usersService *users.UsersService) fiber.Handler {
+func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
 
@@ -30,7 +30,7 @@ func (m *Middleware) JwtAccessTokenAuth(usersService *users.UsersService) fiber.
 	}
 }
 
-func (m *Middleware) JwtRefreshTokenAuth(usersService *users.UsersService) fiber.Handler {
+func (m *Middleware) JwtRefreshTokenAuth(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "refresh_token")
 
@@ -44,7 +44,7 @@ func (m *Middleware) JwtRefreshTokenAuth(usersService *users.UsersService) fiber
 	}
 }
 
-func (m *Middleware) OnlyUnauthorizedAuth(usersService *users.UsersService) fiber.Handler {
+func (m *Middleware) OnlyUnauthorizedAuth(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		_, err := usersService.VerifyTokenByCookie(c, "access_token")
 

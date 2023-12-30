@@ -1,4 +1,4 @@
-package books
+package booksService
 
 import (
 	"fmt"

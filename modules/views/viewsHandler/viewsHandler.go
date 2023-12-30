@@ -1,27 +1,27 @@
-package views
+package viewsHandler
 
 import (
 	"fmt"
 	"strconv"
 
 	"github.com/DeepAung/gofiber-library/configs"
-	"github.com/DeepAung/gofiber-library/modules/books"
-	"github.com/DeepAung/gofiber-library/modules/users"
+	"github.com/DeepAung/gofiber-library/modules/books/booksService"
+	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/gofiber/fiber/v2"
 )
 
 type ViewsHandler struct {
-	usersService *users.UsersService
-	booksService *books.BooksService
+	usersService *usersService.UsersService
+	booksService *booksService.BooksService
 	mid          *middlewares.Middleware
 	cfg          *configs.Config
 }
 
 func NewViewsHandler(
 	r fiber.Router,
-	usersService *users.UsersService,
-	booksService *books.BooksService,
+	usersService *usersService.UsersService,
+	booksService *booksService.BooksService,
 	mid *middlewares.Middleware,
 	cfg *configs.Config,
 ) {
@@ -32,11 +32,12 @@ func NewViewsHandler(
 		cfg:          cfg,
 	}
 
+	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
 	onlyUnauthorized := mid.OnlyUnauthorizedAuth(usersService)
+
 	r.Get("/login", onlyUnauthorized, h.LoginView)
 	r.Get("/register", onlyUnauthorized, h.RegisterView)
 
-	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
 	r.Get("/", onlyAuthorized, h.IndexView)
 	r.Get("/books/:id", onlyAuthorized, h.DetailView)
 	r.Get("/admin", onlyAuthorized, h.AdminView)

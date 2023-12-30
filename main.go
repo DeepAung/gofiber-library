@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/DeepAung/gofiber-library/configs"
-	"github.com/DeepAung/gofiber-library/modules/books"
-	"github.com/DeepAung/gofiber-library/modules/dummy"
-	"github.com/DeepAung/gofiber-library/modules/users"
-	"github.com/DeepAung/gofiber-library/modules/views"
+	"github.com/DeepAung/gofiber-library/modules/books/booksHandler"
+	"github.com/DeepAung/gofiber-library/modules/books/booksService"
+	"github.com/DeepAung/gofiber-library/modules/users/usersHandler"
+	"github.com/DeepAung/gofiber-library/modules/users/usersService"
+	"github.com/DeepAung/gofiber-library/modules/views/viewsHandler"
 	"github.com/DeepAung/gofiber-library/pkg/databases"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
@@ -51,16 +52,13 @@ func (s *Server) initRoutes() {
 	apiGroup := s.App.Group("/api")
 
 	myvalidator := utils.NewMyValidator()
-	usersService := users.NewUsersService(s.DB, s.Cfg)
-	users.NewUsersHandler(apiGroup, myvalidator, usersService)
+	usersService := usersService.NewUsersService(s.DB, s.Cfg)
+	usersHandler.NewUsersHandler(apiGroup, myvalidator, usersService, s.Mid)
 
-	booksService := books.NewBooksService(s.DB)
-	books.NewBooksHandler(apiGroup, myvalidator, booksService, usersService)
+	booksService := booksService.NewBooksService(s.DB)
+	booksHandler.NewBooksHandler(apiGroup, myvalidator, booksService, usersService, s.Mid)
 
-	dummyGroup := s.App.Group("/dummy")
-	dummy.NewDummyHandler(dummyGroup, s.DB)
-
-	views.NewViewsHandler(s.App, usersService, booksService, s.Mid, s.Cfg)
+	viewsHandler.NewViewsHandler(s.App, usersService, booksService, s.Mid, s.Cfg)
 
 	s.App.Use(func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
