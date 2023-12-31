@@ -11,9 +11,9 @@ type Book struct {
 	FavoriteCount int    `json:"favoriteCount" gorm:"default:0"`
 }
 
-type CreateBookReq struct {
+type BookReq struct {
 	Title   string `json:"title"       validate:"required"`
 	Author  string `json:"author"      validate:"required"`
-	Desc    string `json:"description" validate:"required"`
-	Content string `json:"content"     validate:"required"`
+	Desc    string `json:"description"`
+	Content string `json:"content"`
 }

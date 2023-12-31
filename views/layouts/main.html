@@ -9,10 +9,14 @@
 
     <script src="https://unpkg.com/htmx.org@1.9.9"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script
       src="https://kit.fontawesome.com/8e504b9924.js"
       crossorigin="anonymous"
     ></script>
+
     {{if .IsAuthenticated}}
     <script src="/tokensUpdater.js"></script>
     {{end}}
@@ -20,7 +24,21 @@
   <body class="font-sans h-screen">
     <!-- Navbar -->
     <div class="h-[60px] px-10 flex justify-between items-center">
-      <a href="/" class="text-neutral text-2xl font-bold">Go Library Website</a>
+      <div>
+        <a
+          href="/{{if .OnAdminPage}}admin{{end}}"
+          class="text-neutral text-2xl font-bold"
+          >Go Library Website {{if .OnAdminPage}}<span class="text-teal-400"
+            >Admin Page</span
+          >{{end}}</a
+        >
+
+        {{if .IsAdmin}} {{if .OnAdminPage}}
+        <a href="/" class="btn btn-neutral btn-sm rounded-md">Normal Page</a>
+        {{else}}
+        <a href="/admin" class="btn btn-accent btn-sm rounded-md">Admin Page</a>
+        {{end}} {{end}}
+      </div>
       {{if .IsAuthenticated}}
       <div class="flex gap-3 items-center">
         <span class="text-xl">{{.Payload.Username}}</span>

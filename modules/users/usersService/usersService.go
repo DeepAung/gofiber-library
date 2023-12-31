@@ -229,3 +229,13 @@ func (s *UsersService) CheckPassword(password string, hashedPassword string) boo
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
 }
+
+func (s *UsersService) IsAdmin(id int) (bool, error) {
+	var isAdmin bool
+	err := s.db.Model(&models.User{}).Where("id = ?", id).Select("is_admin").First(&isAdmin).Error
+	if err != nil {
+		return false, err
+	}
+
+	return isAdmin, nil
+}

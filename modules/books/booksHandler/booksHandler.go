@@ -34,13 +34,79 @@ func NewBooksHandler(
 	}
 
 	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
+	onlyAdmin := mid.OnlyAdmin(usersService)
 
-	r.Post("/books", onlyAuthorized, h.CreateBook)
+	r.Post("/books", onlyAuthorized, onlyAdmin, h.CreateBook)
+	r.Put("/books/:id", onlyAuthorized, onlyAdmin, h.UpdateBook)
+	r.Delete("/books/:id", onlyAuthorized, onlyAdmin, h.DeleteBook)
 	r.Post("/books/:id/favorite", onlyAuthorized, h.ToggleFavoriteBook)
 }
 
 func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
-	return fmt.Errorf("error")
+	bookReq := new(models.BookReq)
+	if err := c.BodyParser(bookReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	if err := h.validator.Validate(bookReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	err := h.booksService.CreateBook(bookReq)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	c.Response().Header.Set("HX-Redirect", "/admin")
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": "id should be integer"})
+	}
+
+	bookReq := new(models.BookReq)
+	if err := c.BodyParser(bookReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	if err := h.validator.Validate(bookReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	err = h.booksService.UpdateBook(bookReq, id)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	c.Response().Header.Set("HX-Redirect", "/admin")
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (h *BooksHandler) DeleteBook(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": "id should be integer"})
+	}
+
+	err = h.booksService.DeleteBook(id)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
+	}
+
+	c.Response().Header.Set("HX-Redirect", "/admin")
+	return c.SendStatus(fiber.StatusOK)
 }
 
 func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {

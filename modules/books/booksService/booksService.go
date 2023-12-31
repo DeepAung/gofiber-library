@@ -20,6 +20,7 @@ func NewBooksService(db *gorm.DB) *BooksService {
 }
 
 func (s *BooksService) GetBooks() (*[]models.Book, error) {
+	// return nil, fmt.Errorf("dsfjasdf")
 	books := new([]models.Book)
 	if err := s.db.Find(books).Error; err != nil {
 		return nil, err
@@ -38,21 +39,27 @@ func (s *BooksService) GetBook(id int) (*models.Book, error) {
 	return book, nil
 }
 
-func (s *BooksService) CreateBook(book *models.Book) (*models.Book, error) {
-	if err := s.db.Create(book).Error; err != nil {
-		return nil, err
+func (s *BooksService) CreateBook(bookReq *models.BookReq) error {
+	book := &models.Book{
+		Title:         bookReq.Title,
+		Author:        bookReq.Author,
+		Desc:          bookReq.Desc,
+		Content:       bookReq.Content,
+		FavoriteCount: 0,
 	}
 
-	return book, nil
+	return s.db.Create(book).Error
 }
 
-func (s *BooksService) UpdateBook(book *models.Book, id int) (*models.Book, error) {
-	err := s.db.Where("id = ?", id).Updates(book).Error
-	if err != nil {
-		return nil, err
+func (s *BooksService) UpdateBook(bookReq *models.BookReq, id int) error {
+	book := &models.Book{
+		Title:   bookReq.Title,
+		Author:  bookReq.Author,
+		Desc:    bookReq.Desc,
+		Content: bookReq.Content,
 	}
 
-	return book, nil
+	return s.db.Where("id = ?", id).Updates(book).Error
 }
 
 func (s *BooksService) DeleteBook(id int) error {

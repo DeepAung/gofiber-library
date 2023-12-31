@@ -6,7 +6,6 @@ import (
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/log"
 )
 
 type UsersHandler struct {
@@ -40,17 +39,19 @@ func NewUsersHandler(
 func (h *UsersHandler) Login(c *fiber.Ctx) error {
 	loginReq := new(models.LoginReq)
 	if err := c.BodyParser(loginReq); err != nil {
-		return err // TODO: return error components
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
 	}
 
 	if err := h.validator.Validate(loginReq); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
 	}
 
 	err := h.usersService.Login(loginReq, c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).
-			Render("components/auth-error", fiber.Map{"Errors": []string{err.Error()}})
+			Render("components/error", fiber.Map{"Error": err.Error()})
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/")
@@ -60,17 +61,19 @@ func (h *UsersHandler) Login(c *fiber.Ctx) error {
 func (h *UsersHandler) Register(c *fiber.Ctx) error {
 	registerReq := new(models.RegisterReq)
 	if err := c.BodyParser(registerReq); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
 	}
 
 	if err := h.validator.Validate(registerReq); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).
+			Render("components/error", fiber.Map{"Error": err.Error()})
 	}
 
 	err := h.usersService.Register(registerReq)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).
-			Render("components/auth-error", fiber.Map{"Errors": []string{err.Error()}})
+			Render("components/error", fiber.Map{"Error": err.Error()})
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/login")
@@ -87,7 +90,6 @@ func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 func (h *UsersHandler) UpdateTokens(c *fiber.Ctx) error {
 	err := h.usersService.UpdateTokens(c)
 	if err != nil {
-		log.Error("ERROR: ", err)
 		return err
 	}
 

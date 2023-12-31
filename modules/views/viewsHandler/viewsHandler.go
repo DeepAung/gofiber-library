@@ -36,24 +36,36 @@ func NewViewsHandler(
 	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
 	onlyUnauthorized := mid.OnlyUnauthorizedAuth(usersService)
 
+	onlyAdmin := mid.OnlyAdmin(usersService)
+	setIsAdmin := mid.SetIsAdmin(usersService)
+	setOnAdminPage := func(c *fiber.Ctx) error {
+		c.Locals("onAdminPage", true)
+		return c.Next()
+	}
+
 	r.Get("/login", onlyUnauthorized, h.LoginView)
 	r.Get("/register", onlyUnauthorized, h.RegisterView)
 
-	r.Get("/", onlyAuthorized, h.IndexView)
-	r.Get("/books/:id", onlyAuthorized, h.DetailView)
-	r.Get("/admin", onlyAuthorized, h.AdminView)
+	r.Get("/", onlyAuthorized, setIsAdmin, h.IndexView)
+	r.Get("/books/:id", onlyAuthorized, setIsAdmin, h.DetailView)
+
+	r.Get("/admin", onlyAuthorized, onlyAdmin, setOnAdminPage, h.IndexView)
+	r.Get("/admin/books/:id", onlyAuthorized, onlyAdmin, setOnAdminPage, h.DetailView)
+	r.Get("/admin/create", onlyAuthorized, onlyAdmin, setOnAdminPage, h.CreateView)
 }
 
 func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 	books, err := h.booksService.GetBooks()
 	if err != nil {
-		c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
 	return c.Render("index", fiber.Map{
 		"IsAuthenticated": true,
 		"Payload":         c.Locals("payload"),
 		"Books":           books,
+		"IsAdmin":         c.Locals("isAdmin") == true,
+		"OnAdminPage":     c.Locals("onAdminPage") == true,
 	},
 		"layouts/main",
 	)
@@ -82,17 +94,20 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 		"Payload":         payload,
 		"Book":            book,
 		"IsFavorite":      isFavorite,
+		"IsAdmin":         c.Locals("isAdmin") == true,
+		"OnAdminPage":     c.Locals("onAdminPage") == true,
 	},
 		"layouts/main",
 	)
 }
 
-func (h *ViewsHandler) AdminView(c *fiber.Ctx) error { // TODO: add admin view
-	// books, err := h.booksService.GetBooks()
-	// if err != nil {
-	// c.Status(fiber.StatusBadRequest).SendString(err.Error())
-	// }
-	return fmt.Errorf("error")
+func (h *ViewsHandler) CreateView(c *fiber.Ctx) error {
+	return c.Render("create", fiber.Map{
+		"IsAuthenticated": true,
+		"Payload":         c.Locals("payload"),
+		"IsAdmin":         true,
+		"OnAdminPage":     true,
+	}, "layouts/main")
 }
 
 func (h *ViewsHandler) LoginView(c *fiber.Ctx) error {

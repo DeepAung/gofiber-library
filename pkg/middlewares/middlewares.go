@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/gofiber/fiber/v2"
 )
@@ -9,6 +10,47 @@ type Middleware struct{}
 
 func NewMiddleware() *Middleware {
 	return &Middleware{}
+}
+
+func (m *Middleware) SetIsAdmin(usersService *usersService.UsersService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		payload, ok := c.Locals("payload").(*models.JwtPayload)
+		if !ok {
+			usersService.ClearToken(c)
+			return c.Redirect("/login")
+		}
+
+		isAdmin, err := usersService.IsAdmin(payload.ID)
+		if err != nil {
+			return c.Redirect("/")
+		}
+
+		c.Locals("isAdmin", isAdmin)
+
+		return c.Next()
+	}
+}
+
+func (m *Middleware) OnlyAdmin(usersService *usersService.UsersService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		payload, ok := c.Locals("payload").(*models.JwtPayload)
+		if !ok {
+			usersService.ClearToken(c)
+			return c.Redirect("/login")
+		}
+
+		isAdmin, err := usersService.IsAdmin(payload.ID)
+		if err != nil {
+			return c.Redirect("/")
+		}
+
+		c.Locals("isAdmin", isAdmin)
+		if isAdmin {
+			return c.Next()
+		} else {
+			return c.Redirect("/")
+		}
+	}
 }
 
 func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService) fiber.Handler {

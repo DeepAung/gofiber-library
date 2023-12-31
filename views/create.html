@@ -1,20 +1,11 @@
-{{if .OnAdminPage}}
-
 <form
   hx-ext="json-enc, response-targets"
-  hx-put="/api/books/{{.Book.ID}}"
+  hx-post="/api/books"
   hx-target-error="#error-messages"
   class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3"
 >
-  <input type="submit" value="Update" class="btn btn-success" />
-  <a href="/{{if .OnAdminPage}}admin{{end}}" class="btn btn-warning">Cancel</a>
-  <button
-    hx-delete="/api/books/{{.Book.ID}}"
-    type="button"
-    class="btn btn-error"
-  >
-    Delete
-  </button>
+  <input type="submit" value="Create" class="btn btn-success" />
+  <a href="/admin" class="btn btn-warning">Cancel</a>
 
   <div id="error-messages"></div>
 
@@ -22,7 +13,6 @@
   <input
     type="text"
     name="title"
-    value="{{.Book.Title}}"
     class="p-2 bg-neutral-200 border-black rounded-md"
   />
 
@@ -30,7 +20,6 @@
   <input
     type="text"
     name="author"
-    value="{{.Book.Author}}"
     class="p-2 bg-neutral-200 border-black rounded-md"
   />
 
@@ -38,29 +27,10 @@
   <input
     type="text"
     name="description"
-    value="{{.Book.Desc}}"
     class="p-2 bg-neutral-200 border-black rounded-md"
   />
 
   <label for="content" class="font-bold">Content</label>
   <textarea name="content" class="p-2 bg-neutral-200 border-black rounded-md">
-  {{.Book.Content}}
   </textarea>
 </form>
-
-{{else}}
-
-<div class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
-  <h1 class="text-5xl font-bold text-center">{{.Book.Title}}</h1>
-  <p class="text-end italic mt-6 mb-4">
-    Created by {{.Book.Author}} {{template "components/star" .}}
-  </p>
-
-  <p class="italic">{{.Book.Desc}}</p>
-
-  <hr class="mb-3" />
-
-  <span class="block"> {{.Book.Content}} </span>
-</div>
-
-{{end}}

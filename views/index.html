@@ -1,21 +1,32 @@
 <div class="p-5 flex flex-wrap gap-5 justify-center">
-  {{range .Books}}
-  <!-- hx post -->
+  {{range $Book := .Books}}
   <a
-    href="/books/{{.ID}}"
+    {{if
+    $.OnAdminPage}}
+    href="/admin/books/{{$Book.ID}}"
+    {{else}}
+    href="/books/{{$Book.ID}}"
+    {{end}}
     class="block card sm:w-[15rem] w-full h-[20rem] bg-neutral text-white cursor-pointer shadow-black hover:shadow-2xl transition-shadow"
   >
-    <div class="card-body">
-      <h2 class="card-title">{{.Title}}</h2>
+    <div class="card-body flex flex-col justify-between h-full">
       <div>
-        <p>Author: {{.Author}}</p>
-        <p>{{.Desc}}</p>
+        <h2 class="card-title">{{$Book.Title}}</h2>
+        <p class="italic mt-2">Author: {{$Book.Author}}</p>
+        <p class="italic">{{$Book.Desc}}</p>
       </div>
-      <!-- hx post -->
       <div class="card-actions justify-end">
-        <span class="btn"> {{.FavoriteCount}} </span>
+        <span class="btn btn-active"> {{$Book.FavoriteCount}} </span>
       </div>
     </div>
   </a>
   {{end}}
 </div>
+
+{{if .OnAdminPage}}
+<a
+  href="/admin/create"
+  class="fixed right-[5vw] bottom-4 btn btn-neutral text-2xl"
+  >+</a
+>
+{{end}}
