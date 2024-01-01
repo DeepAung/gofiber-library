@@ -1,4 +1,4 @@
 .vscode/
 node_modules/
 tmp/
-.env
+.env.prod
