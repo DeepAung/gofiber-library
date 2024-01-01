@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/DeepAung/gofiber-library/configs"
@@ -17,6 +16,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	"github.com/gofiber/template/html/v2"
@@ -40,25 +40,29 @@ func main() {
 
 	server.App.Use(logger.New())
 	server.App.Use(recover.New())
+	server.App.Use(cors.New(cors.Config{
+		AllowCredentials: true,
+	}))
 	server.App.Static("/", "./public")
 
 	server.initRoutes()
 
-	addr := fmt.Sprintf("%s:%s", server.Cfg.Fiber.Host, server.Cfg.Fiber.Port)
-	log.Fatal(server.App.Listen(addr))
+	log.Fatal(server.App.Listen(":" + server.Cfg.Fiber.Port))
 }
 
 func (s *Server) initRoutes() {
 	apiGroup := s.App.Group("/api")
 
 	myvalidator := utils.NewMyValidator()
+	myerror := utils.NewMyError()
+
 	usersService := usersService.NewUsersService(s.DB, s.Cfg)
-	usersHandler.NewUsersHandler(apiGroup, myvalidator, usersService, s.Mid)
+	usersHandler.NewUsersHandler(apiGroup, myvalidator, myerror, usersService, s.Mid)
 
 	booksService := booksService.NewBooksService(s.DB)
-	booksHandler.NewBooksHandler(apiGroup, myvalidator, booksService, usersService, s.Mid)
+	booksHandler.NewBooksHandler(apiGroup, myvalidator, myerror, booksService, usersService, s.Mid)
 
-	viewsHandler.NewViewsHandler(s.App, usersService, booksService, s.Mid, s.Cfg)
+	viewsHandler.NewViewsHandler(s.App, myerror, usersService, booksService, s.Mid, s.Cfg)
 
 	s.App.Use(func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
@@ -66,6 +70,8 @@ func (s *Server) initRoutes() {
 		return c.Render("error", fiber.Map{
 			"IsAuthenticated": err == nil,
 			"Payload":         payload,
+			"ErrorTitle":      "Error 404",
+			"ErrorDetail":     "This page is not found",
 		},
 			"layouts/main",
 		)

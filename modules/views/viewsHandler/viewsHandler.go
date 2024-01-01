@@ -1,7 +1,6 @@
 package viewsHandler
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/DeepAung/gofiber-library/configs"
@@ -9,10 +8,12 @@ import (
 	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
+	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
 type ViewsHandler struct {
+	myerror      *utils.MyError
 	usersService *usersService.UsersService
 	booksService *booksService.BooksService
 	mid          *middlewares.Middleware
@@ -21,12 +22,14 @@ type ViewsHandler struct {
 
 func NewViewsHandler(
 	r fiber.Router,
+	myerror *utils.MyError,
 	usersService *usersService.UsersService,
 	booksService *booksService.BooksService,
 	mid *middlewares.Middleware,
 	cfg *configs.Config,
 ) {
 	h := &ViewsHandler{
+		myerror:      myerror,
 		usersService: usersService,
 		booksService: booksService,
 		mid:          mid,
@@ -56,46 +59,71 @@ func NewViewsHandler(
 
 func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 	books, err := h.booksService.GetBooks()
+
+	isAuthenticated := true
+	payload := c.Locals("payload").(*models.JwtPayload)
+	isAdmin := c.Locals("isAdmin") == true
+	onAdminPage := c.Locals("onAdminPage") == true
+
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return h.myerror.RenderErrorPage(
+			c,
+			err.Error(),
+			isAuthenticated,
+			payload,
+			isAdmin,
+			onAdminPage,
+		)
 	}
 
 	return c.Render("index", fiber.Map{
-		"IsAuthenticated": true,
-		"Payload":         c.Locals("payload"),
 		"Books":           books,
-		"IsAdmin":         c.Locals("isAdmin") == true,
-		"OnAdminPage":     c.Locals("onAdminPage") == true,
-	},
-		"layouts/main",
-	)
+		"IsAuthenticated": isAuthenticated,
+		"Payload":         payload,
+		"IsAdmin":         isAdmin,
+		"OnAdminPage":     onAdminPage,
+	}, "layouts/main")
 }
 
 func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
+	isAuthenticated := true
+	payload := c.Locals("payload").(*models.JwtPayload)
+	isAdmin := c.Locals("isAdmin") == true
+	onAdminPage := c.Locals("onAdminPage") == true
+
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return fmt.Errorf("id should be integer")
-	}
-
-	payload, ok := c.Locals("payload").(*models.JwtPayload)
-	if !ok {
-		return fmt.Errorf("authorization error")
+		return h.myerror.RenderErrorPage(
+			c,
+			"id should be integer",
+			isAuthenticated,
+			payload,
+			isAdmin,
+			onAdminPage,
+		)
 	}
 
 	book, err := h.booksService.GetBook(id)
 	if err != nil {
-		return err
+		return h.myerror.RenderErrorPage(
+			c,
+			"id should be integer",
+			isAuthenticated,
+			payload,
+			isAdmin,
+			onAdminPage,
+		)
 	}
 
 	isFavorite, err := h.booksService.GetIsFavorite(payload.ID, id)
 
 	return c.Render("detail", fiber.Map{
-		"IsAuthenticated": true,
-		"Payload":         payload,
 		"Book":            book,
 		"IsFavorite":      isFavorite,
-		"IsAdmin":         c.Locals("isAdmin") == true,
-		"OnAdminPage":     c.Locals("onAdminPage") == true,
+		"IsAuthenticated": true,
+		"Payload":         payload,
+		"IsAdmin":         isAdmin,
+		"OnAdminPage":     onAdminPage,
 	},
 		"layouts/main",
 	)

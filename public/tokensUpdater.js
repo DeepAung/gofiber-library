@@ -1,6 +1,8 @@
 const minute = 60 * 1000;
 
-updateTokens();
+setTimeout(async () => {
+  await updateTokens()
+}, 1000);
 setInterval(async () => {
   await updateTokens();
 }, 14 * minute);

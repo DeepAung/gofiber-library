@@ -20,7 +20,6 @@ func NewBooksService(db *gorm.DB) *BooksService {
 }
 
 func (s *BooksService) GetBooks() (*[]models.Book, error) {
-	// return nil, fmt.Errorf("dsfjasdf")
 	books := new([]models.Book)
 	if err := s.db.Find(books).Error; err != nil {
 		return nil, err
@@ -29,7 +28,6 @@ func (s *BooksService) GetBooks() (*[]models.Book, error) {
 	return books, nil
 }
 
-// TODO: also return if it is userfavbooks
 func (s *BooksService) GetBook(id int) (*models.Book, error) {
 	book := new(models.Book)
 	if err := s.db.First(book, id).Error; err != nil {
@@ -97,22 +95,43 @@ func (s *BooksService) ToggleFavoriteBook(userId int, bookId int) (bool, error) 
 	}
 }
 
-// TODO: handle errors
 func (s *BooksService) FavoriteBook(userId int, bookId int) (bool, error) {
-	s.db.Create(&models.UserFavbooks{UserID: userId, BookID: bookId})
-	s.db.Model(&models.Book{}).
-		Where("id = ?", bookId).
-		Update("favorite_count", gorm.Expr("favorite_count + ?", 1))
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&models.UserFavbooks{UserID: userId, BookID: bookId}).Error
+		if err != nil {
+			return err
+		}
 
-	return true, nil
+		err = tx.Model(&models.Book{}).
+			Where("id = ?", bookId).
+			Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return true, err
 }
 
-// TODO: handle errors
 func (s *BooksService) UnfavoriteBook(userId int, bookId int) (bool, error) {
-	s.db.Delete(&models.UserFavbooks{UserID: userId, BookID: bookId})
-	s.db.Model(&models.Book{}).
-		Where("id = ?", bookId).
-		Update("favorite_count", gorm.Expr("favorite_count - ?", 1))
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Delete(&models.UserFavbooks{UserID: userId, BookID: bookId}).Error
+		if err != nil {
+			return err
+		}
 
-	return false, nil
+		err = tx.Model(&models.Book{}).
+			Where("id = ?", bookId).
+			Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).
+			Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return false, err
 }

@@ -10,6 +10,7 @@ import (
 
 type UsersHandler struct {
 	validator    *utils.MyValidator
+	myerror      *utils.MyError
 	usersService *usersService.UsersService
 	mid          *middlewares.Middleware
 }
@@ -17,11 +18,13 @@ type UsersHandler struct {
 func NewUsersHandler(
 	r fiber.Router,
 	validator *utils.MyValidator,
+	myerror *utils.MyError,
 	usersService *usersService.UsersService,
 	mid *middlewares.Middleware,
 ) {
 	h := &UsersHandler{
 		validator:    validator,
+		myerror:      myerror,
 		usersService: usersService,
 		mid:          mid,
 	}
@@ -39,19 +42,16 @@ func NewUsersHandler(
 func (h *UsersHandler) Login(c *fiber.Ctx) error {
 	loginReq := new(models.LoginReq)
 	if err := c.BodyParser(loginReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	if err := h.validator.Validate(loginReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	err := h.usersService.Login(loginReq, c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/")
@@ -61,19 +61,16 @@ func (h *UsersHandler) Login(c *fiber.Ctx) error {
 func (h *UsersHandler) Register(c *fiber.Ctx) error {
 	registerReq := new(models.RegisterReq)
 	if err := c.BodyParser(registerReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	if err := h.validator.Validate(registerReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	err := h.usersService.Register(registerReq)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/login")
@@ -88,7 +85,7 @@ func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *UsersHandler) UpdateTokens(c *fiber.Ctx) error {
-	err := h.usersService.UpdateTokens(c)
+	_, err := h.usersService.UpdateTokens(c)
 	if err != nil {
 		return err
 	}

@@ -24,7 +24,7 @@ func NewUsersService(db *gorm.DB, cfg *configs.Config) *UsersService {
 	}
 }
 
-const AccessTokenExpTime = 15 * time.Minute
+const AccessTokenExpTime = 1 * time.Minute
 const RefreshTokenExpTime = 7 * 24 * time.Hour
 
 func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
@@ -95,11 +95,15 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 	return nil
 }
 
-func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
+func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*models.JwtPayload, error) {
 	cookieRefreshToken := c.Cookies("refresh_token")
+	if cookieRefreshToken == "" {
+		return nil, fmt.Errorf("refresh token not found")
+	}
+
 	payload, err := s.VerifyToken(cookieRefreshToken)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	dbRefreshToken := ""
@@ -109,11 +113,11 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
 		First(&dbRefreshToken).
 		Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if cookieRefreshToken != dbRefreshToken {
-		return fmt.Errorf("incorrect refresh token")
+		return nil, fmt.Errorf("incorrect refresh token")
 	}
 
 	newAccessToken, err := s.GenerateToken(
@@ -122,7 +126,7 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
 		AccessTokenExpTime,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	newRefreshToken, err := s.GenerateToken(
@@ -131,7 +135,7 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
 		RefreshTokenExpTime,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = s.db.
@@ -140,13 +144,13 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) error {
 		Update("refresh_token", newRefreshToken).
 		Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	s.SetCookie(c, "access_token", newAccessToken, AccessTokenExpTime)
 	s.SetCookie(c, "refresh_token", newRefreshToken, RefreshTokenExpTime)
 
-	return nil
+	return payload, nil
 }
 
 func (s *UsersService) VerifyTokenByCookie(

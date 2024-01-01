@@ -61,13 +61,7 @@ func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService)
 			return c.Next()
 		}
 
-		err = usersService.UpdateTokens(c)
-		if err != nil {
-			usersService.ClearToken(c)
-			return c.Redirect("/login")
-		}
-
-		payload, err = usersService.VerifyTokenByCookie(c, "access_token")
+		payload, err = usersService.UpdateTokens(c)
 		if err != nil {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")

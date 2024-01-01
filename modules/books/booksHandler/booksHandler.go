@@ -1,7 +1,6 @@
 package booksHandler
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/DeepAung/gofiber-library/modules/books/booksService"
@@ -14,6 +13,7 @@ import (
 
 type BooksHandler struct {
 	validator    *utils.MyValidator
+	myerror      *utils.MyError
 	booksService *booksService.BooksService
 	usersService *usersService.UsersService
 	mid          *middlewares.Middleware
@@ -22,12 +22,14 @@ type BooksHandler struct {
 func NewBooksHandler(
 	r fiber.Router,
 	validator *utils.MyValidator,
+	myerror *utils.MyError,
 	booksService *booksService.BooksService,
 	usersService *usersService.UsersService,
 	mid *middlewares.Middleware,
 ) {
 	h := &BooksHandler{
 		validator:    validator,
+		myerror:      myerror,
 		booksService: booksService,
 		usersService: usersService,
 		mid:          mid,
@@ -45,19 +47,16 @@ func NewBooksHandler(
 func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
 	bookReq := new(models.BookReq)
 	if err := c.BodyParser(bookReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	if err := h.validator.Validate(bookReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	err := h.booksService.CreateBook(bookReq)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/admin")
@@ -67,25 +66,21 @@ func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
 func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": "id should be integer"})
+		return h.myerror.SendErrorText(c, "id should be integer")
 	}
 
 	bookReq := new(models.BookReq)
 	if err := c.BodyParser(bookReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	if err := h.validator.Validate(bookReq); err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	err = h.booksService.UpdateBook(bookReq, id)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/admin")
@@ -95,14 +90,12 @@ func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
 func (h *BooksHandler) DeleteBook(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": "id should be integer"})
+		return h.myerror.SendErrorText(c, "id should be integer")
 	}
 
 	err = h.booksService.DeleteBook(id)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).
-			Render("components/error", fiber.Map{"Error": err.Error()})
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/admin")
@@ -112,22 +105,22 @@ func (h *BooksHandler) DeleteBook(c *fiber.Ctx) error {
 func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {
 	bookId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return fmt.Errorf("id should be integer")
+		return h.myerror.SendErrorText(c, "id should be integer")
 	}
 
 	book, err := h.booksService.GetBook(bookId)
 	if err != nil {
-		return fmt.Errorf("book not found")
+		return h.myerror.SendErrorText(c, "book not found")
 	}
 
 	payload, ok := c.Locals("payload").(*models.JwtPayload)
 	if !ok {
-		return fmt.Errorf("authorization error")
+		return h.myerror.SendErrorText(c, "authorization error")
 	}
 
 	isFavorite, err := h.booksService.ToggleFavoriteBook(payload.ID, bookId)
 	if err != nil {
-		return err
+		return h.myerror.SendErrorText(c, err.Error())
 	}
 
 	if isFavorite {
