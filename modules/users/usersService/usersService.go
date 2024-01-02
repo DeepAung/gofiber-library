@@ -24,7 +24,7 @@ func NewUsersService(db *gorm.DB, cfg *configs.Config) *UsersService {
 	}
 }
 
-const AccessTokenExpTime = 1 * time.Minute
+const AccessTokenExpTime = 15 * time.Minute
 const RefreshTokenExpTime = 7 * 24 * time.Hour
 
 func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
