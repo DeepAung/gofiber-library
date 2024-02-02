@@ -3,7 +3,7 @@
 A full-stack online library website using [Go](https://go.dev/) and [HTMX](https://htmx.org/)
 
 ## Website
-visit my website here [gofiber-library-production.up.railway.app/](gofiber-library-production.up.railway.app/)
+visit my website here [https://gofiber-library-production.up.railway.app/](https://gofiber-library-production.up.railway.app/)
 
 ## Demo user
 1. username: deepaung <br/>
