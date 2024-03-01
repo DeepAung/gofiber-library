@@ -40,9 +40,7 @@ func main() {
 
 	server.App.Use(logger.New())
 	server.App.Use(recover.New())
-	server.App.Use(cors.New(cors.Config{
-		AllowCredentials: true,
-	}))
+	server.App.Use(cors.New(cors.Config{}))
 	server.App.Static("/", "./public")
 
 	server.initRoutes()

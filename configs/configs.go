@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -28,9 +29,11 @@ type Fiber struct {
 }
 
 func NewConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		// in railways production doesn't need to load .env file
+	if len(os.Args) > 1 {
+		err := godotenv.Load(os.Args[1])
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return &Config{
