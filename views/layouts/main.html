@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="#" />
-    <link rel="stylesheet" href="/output.css" />
+    <link rel="stylesheet" href="/static/output.css" />
 
     <script src="https://unpkg.com/htmx.org@1.9.9"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
@@ -18,9 +18,10 @@
     ></script>
 
     {{if .IsAuthenticated}}
-    <script src="/tokensUpdater.js"></script>
+    <script src="/static/tokensUpdater.js"></script>
     {{end}}
   </head>
+
   <body class="font-sans h-screen">
     <!-- Navbar -->
     <div class="h-[60px] px-10 flex justify-between items-center">

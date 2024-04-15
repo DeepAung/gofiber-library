@@ -1,9 +1,4 @@
 {
-  "scripts": {
-    "go": "air",
-    "db": "docker-compose up",
-    "tailwind": "npx tailwindcss -c ./tailwind.config.js -i ./src/input.css -o ./public/output.css --watch"
-  },
   "devDependencies": {
     "daisyui": "^4.4.24",
     "tailwindcss": "^3.3.6"

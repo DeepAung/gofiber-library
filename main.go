@@ -41,7 +41,7 @@ func main() {
 	server.App.Use(logger.New())
 	server.App.Use(recover.New())
 	server.App.Use(cors.New(cors.Config{}))
-	server.App.Static("/", "./public")
+	server.App.Static("/static", "./static")
 
 	server.initRoutes()
 
@@ -73,6 +73,5 @@ func (s *Server) initRoutes() {
 		},
 			"layouts/main",
 		)
-
 	})
 }

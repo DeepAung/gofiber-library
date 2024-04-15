@@ -1,50 +1,27 @@
 {{if .OnAdminPage}}
 
-<form
-  hx-ext="json-enc, response-targets"
-  hx-put="/api/books/{{.Book.ID}}"
-  hx-target-error="#error-messages"
-  class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3"
->
+<form hx-ext="json-enc, response-targets" hx-put="/api/books/{{.Book.ID}}" hx-target-error="#error-messages"
+  class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
   <input type="submit" value="Update" class="btn btn-success" />
   <a href="/{{if .OnAdminPage}}admin{{end}}" class="btn btn-warning">Cancel</a>
-  <button
-    hx-delete="/api/books/{{.Book.ID}}"
-    type="button"
-    class="btn btn-error"
-  >
+  <button hx-delete="/api/books/{{.Book.ID}}" type="button" class="btn btn-error">
     Delete
   </button>
 
   <div id="error-messages"></div>
 
   <label for="title" class="font-bold">Title</label>
-  <input
-    type="text"
-    name="title"
-    value="{{.Book.Title}}"
-    class="p-2 bg-neutral-200 border-black rounded-md"
-  />
+  <input type="text" name="title" value="{{.Book.Title}}" class="p-2 bg-neutral-200 border-black rounded-md" />
 
   <label for="author" class="font-bold">Author</label>
-  <input
-    type="text"
-    name="author"
-    value="{{.Book.Author}}"
-    class="p-2 bg-neutral-200 border-black rounded-md"
-  />
+  <input type="text" name="author" value="{{.Book.Author}}" class="p-2 bg-neutral-200 border-black rounded-md" />
 
   <label for="description" class="font-bold">Description</label>
-  <input
-    type="text"
-    name="description"
-    value="{{.Book.Desc}}"
-    class="p-2 bg-neutral-200 border-black rounded-md"
-  />
+  <input type="text" name="description" value="{{.Book.Desc}}" class="p-2 bg-neutral-200 border-black rounded-md" />
 
   <label for="content" class="font-bold">Content</label>
-  <textarea name="content" class="p-2 bg-neutral-200 border-black rounded-md">
-  {{.Book.Content}}
+  <textarea name="content" cols="10" class="p-2 bg-neutral-200 border-black rounded-md">
+    {{.Book.Content}}
   </textarea>
 </form>
 
