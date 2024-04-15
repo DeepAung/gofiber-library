@@ -1,17 +1,17 @@
-package usersHandler
+package handlers
 
 import (
-	"github.com/DeepAung/gofiber-library/modules/models"
-	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
+	"github.com/DeepAung/gofiber-library/services"
+	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UsersHandler struct {
 	validator    *utils.MyValidator
 	myerror      *utils.MyError
-	usersService *usersService.UsersService
+	usersService *services.UsersService
 	mid          *middlewares.Middleware
 }
 
@@ -19,7 +19,7 @@ func NewUsersHandler(
 	r fiber.Router,
 	validator *utils.MyValidator,
 	myerror *utils.MyError,
-	usersService *usersService.UsersService,
+	usersService *services.UsersService,
 	mid *middlewares.Middleware,
 ) {
 	h := &UsersHandler{
@@ -40,7 +40,7 @@ func NewUsersHandler(
 }
 
 func (h *UsersHandler) Login(c *fiber.Ctx) error {
-	loginReq := new(models.LoginReq)
+	loginReq := new(types.LoginReq)
 	if err := c.BodyParser(loginReq); err != nil {
 		return h.myerror.SendErrorText(c, err.Error())
 	}
@@ -59,7 +59,7 @@ func (h *UsersHandler) Login(c *fiber.Ctx) error {
 }
 
 func (h *UsersHandler) Register(c *fiber.Ctx) error {
-	registerReq := new(models.RegisterReq)
+	registerReq := new(types.RegisterReq)
 	if err := c.BodyParser(registerReq); err != nil {
 		return h.myerror.SendErrorText(c, err.Error())
 	}

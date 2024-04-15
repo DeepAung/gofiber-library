@@ -1,21 +1,20 @@
-package booksHandler
+package handlers
 
 import (
 	"strconv"
 
-	"github.com/DeepAung/gofiber-library/modules/books/booksService"
-	"github.com/DeepAung/gofiber-library/modules/models"
-	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
+	"github.com/DeepAung/gofiber-library/services"
+	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 )
 
 type BooksHandler struct {
 	validator    *utils.MyValidator
 	myerror      *utils.MyError
-	booksService *booksService.BooksService
-	usersService *usersService.UsersService
+	booksService *services.BooksService
+	usersService *services.UsersService
 	mid          *middlewares.Middleware
 }
 
@@ -23,8 +22,8 @@ func NewBooksHandler(
 	r fiber.Router,
 	validator *utils.MyValidator,
 	myerror *utils.MyError,
-	booksService *booksService.BooksService,
-	usersService *usersService.UsersService,
+	booksService *services.BooksService,
+	usersService *services.UsersService,
 	mid *middlewares.Middleware,
 ) {
 	h := &BooksHandler{
@@ -45,7 +44,7 @@ func NewBooksHandler(
 }
 
 func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
-	bookReq := new(models.BookReq)
+	bookReq := new(types.BookReq)
 	if err := c.BodyParser(bookReq); err != nil {
 		return h.myerror.SendErrorText(c, err.Error())
 	}
@@ -69,7 +68,7 @@ func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
 		return h.myerror.SendErrorText(c, "id should be integer")
 	}
 
-	bookReq := new(models.BookReq)
+	bookReq := new(types.BookReq)
 	if err := c.BodyParser(bookReq); err != nil {
 		return h.myerror.SendErrorText(c, err.Error())
 	}
@@ -113,7 +112,7 @@ func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {
 		return h.myerror.SendErrorText(c, "book not found")
 	}
 
-	payload, ok := c.Locals("payload").(*models.JwtPayload)
+	payload, ok := c.Locals("payload").(*types.JwtPayload)
 	if !ok {
 		return h.myerror.SendErrorText(c, "authorization error")
 	}

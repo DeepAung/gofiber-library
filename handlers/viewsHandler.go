@@ -1,21 +1,20 @@
-package viewsHandler
+package handlers
 
 import (
 	"strconv"
 
-	"github.com/DeepAung/gofiber-library/modules/books/booksService"
-	"github.com/DeepAung/gofiber-library/modules/models"
-	"github.com/DeepAung/gofiber-library/modules/users/usersService"
 	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
+	"github.com/DeepAung/gofiber-library/services"
+	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 )
 
 type ViewsHandler struct {
 	myerror      *utils.MyError
-	usersService *usersService.UsersService
-	booksService *booksService.BooksService
+	usersService *services.UsersService
+	booksService *services.BooksService
 	mid          *middlewares.Middleware
 	cfg          *configs.Config
 }
@@ -23,8 +22,8 @@ type ViewsHandler struct {
 func NewViewsHandler(
 	r fiber.Router,
 	myerror *utils.MyError,
-	usersService *usersService.UsersService,
-	booksService *booksService.BooksService,
+	usersService *services.UsersService,
+	booksService *services.BooksService,
 	mid *middlewares.Middleware,
 	cfg *configs.Config,
 ) {
@@ -61,7 +60,7 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 	books, err := h.booksService.GetBooks()
 
 	isAuthenticated := true
-	payload := c.Locals("payload").(*models.JwtPayload)
+	payload := c.Locals("payload").(*types.JwtPayload)
 	isAdmin := c.Locals("isAdmin") == true
 	onAdminPage := c.Locals("onAdminPage") == true
 
@@ -87,7 +86,7 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 
 func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 	isAuthenticated := true
-	payload := c.Locals("payload").(*models.JwtPayload)
+	payload := c.Locals("payload").(*types.JwtPayload)
 	isAdmin := c.Locals("isAdmin") == true
 	onAdminPage := c.Locals("onAdminPage") == true
 

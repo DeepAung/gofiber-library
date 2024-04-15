@@ -1,10 +1,10 @@
-package booksService
+package services
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/DeepAung/gofiber-library/modules/models"
+	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -19,8 +19,8 @@ func NewBooksService(db *gorm.DB) *BooksService {
 	}
 }
 
-func (s *BooksService) GetBooks() (*[]models.Book, error) {
-	books := new([]models.Book)
+func (s *BooksService) GetBooks() (*[]types.Book, error) {
+	books := new([]types.Book)
 	if err := s.db.Find(books).Error; err != nil {
 		return nil, err
 	}
@@ -28,8 +28,8 @@ func (s *BooksService) GetBooks() (*[]models.Book, error) {
 	return books, nil
 }
 
-func (s *BooksService) GetBook(id int) (*models.Book, error) {
-	book := new(models.Book)
+func (s *BooksService) GetBook(id int) (*types.Book, error) {
+	book := new(types.Book)
 	if err := s.db.First(book, id).Error; err != nil {
 		return nil, err
 	}
@@ -37,8 +37,8 @@ func (s *BooksService) GetBook(id int) (*models.Book, error) {
 	return book, nil
 }
 
-func (s *BooksService) CreateBook(bookReq *models.BookReq) error {
-	book := &models.Book{
+func (s *BooksService) CreateBook(bookReq *types.BookReq) error {
+	book := &types.Book{
 		Title:         bookReq.Title,
 		Author:        bookReq.Author,
 		Desc:          bookReq.Desc,
@@ -49,8 +49,8 @@ func (s *BooksService) CreateBook(bookReq *models.BookReq) error {
 	return s.db.Create(book).Error
 }
 
-func (s *BooksService) UpdateBook(bookReq *models.BookReq, id int) error {
-	book := &models.Book{
+func (s *BooksService) UpdateBook(bookReq *types.BookReq, id int) error {
+	book := &types.Book{
 		Title:   bookReq.Title,
 		Author:  bookReq.Author,
 		Desc:    bookReq.Desc,
@@ -61,7 +61,7 @@ func (s *BooksService) UpdateBook(bookReq *models.BookReq, id int) error {
 }
 
 func (s *BooksService) DeleteBook(id int) error {
-	result := s.db.Delete(&models.Book{}, id)
+	result := s.db.Delete(&types.Book{}, id)
 	if result.RowsAffected == 0 {
 		return fmt.Errorf(fiber.ErrNotFound.Message)
 	}
@@ -70,7 +70,7 @@ func (s *BooksService) DeleteBook(id int) error {
 }
 
 func (s *BooksService) GetIsFavorite(userId int, bookId int) (bool, error) {
-	err := s.db.First(&models.UserFavbooks{UserID: userId, BookID: bookId}).Error
+	err := s.db.First(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -97,12 +97,12 @@ func (s *BooksService) ToggleFavoriteBook(userId int, bookId int) (bool, error) 
 
 func (s *BooksService) FavoriteBook(userId int, bookId int) (bool, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Create(&models.UserFavbooks{UserID: userId, BookID: bookId}).Error
+		err := tx.Create(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
 		if err != nil {
 			return err
 		}
 
-		err = tx.Model(&models.Book{}).
+		err = tx.Model(&types.Book{}).
 			Where("id = ?", bookId).
 			Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error
 		if err != nil {
@@ -117,12 +117,12 @@ func (s *BooksService) FavoriteBook(userId int, bookId int) (bool, error) {
 
 func (s *BooksService) UnfavoriteBook(userId int, bookId int) (bool, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Delete(&models.UserFavbooks{UserID: userId, BookID: bookId}).Error
+		err := tx.Delete(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
 		if err != nil {
 			return err
 		}
 
-		err = tx.Model(&models.Book{}).
+		err = tx.Model(&types.Book{}).
 			Where("id = ?", bookId).
 			Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).
 			Error

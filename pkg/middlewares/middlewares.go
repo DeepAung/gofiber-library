@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"github.com/DeepAung/gofiber-library/modules/models"
-	"github.com/DeepAung/gofiber-library/modules/users/usersService"
+	"github.com/DeepAung/gofiber-library/services"
+	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,7 +12,7 @@ func NewMiddleware() *Middleware {
 	return &Middleware{}
 }
 
-func (m *Middleware) PageNotFound(usersService *usersService.UsersService) fiber.Handler {
+func (m *Middleware) PageNotFound(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
 
@@ -27,9 +27,9 @@ func (m *Middleware) PageNotFound(usersService *usersService.UsersService) fiber
 	}
 }
 
-func (m *Middleware) SetIsAdmin(usersService *usersService.UsersService) fiber.Handler {
+func (m *Middleware) SetIsAdmin(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, ok := c.Locals("payload").(*models.JwtPayload)
+		payload, ok := c.Locals("payload").(*types.JwtPayload)
 		if !ok {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")
@@ -46,9 +46,9 @@ func (m *Middleware) SetIsAdmin(usersService *usersService.UsersService) fiber.H
 	}
 }
 
-func (m *Middleware) OnlyAdmin(usersService *usersService.UsersService) fiber.Handler {
+func (m *Middleware) OnlyAdmin(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, ok := c.Locals("payload").(*models.JwtPayload)
+		payload, ok := c.Locals("payload").(*types.JwtPayload)
 		if !ok {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")
@@ -68,7 +68,7 @@ func (m *Middleware) OnlyAdmin(usersService *usersService.UsersService) fiber.Ha
 	}
 }
 
-func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService) fiber.Handler {
+func (m *Middleware) JwtAccessTokenAuth(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
 		if err == nil {
@@ -87,7 +87,7 @@ func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService)
 	}
 }
 
-func (m *Middleware) JwtRefreshTokenAuth(usersService *usersService.UsersService) fiber.Handler {
+func (m *Middleware) JwtRefreshTokenAuth(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "refresh_token")
 		if err != nil {
@@ -100,7 +100,7 @@ func (m *Middleware) JwtRefreshTokenAuth(usersService *usersService.UsersService
 	}
 }
 
-func (m *Middleware) OnlyUnauthorizedAuth(usersService *usersService.UsersService) fiber.Handler {
+func (m *Middleware) OnlyUnauthorizedAuth(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		_, err := usersService.VerifyTokenByCookie(c, "access_token")
 		if err != nil {

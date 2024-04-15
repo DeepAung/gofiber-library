@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/pkg/configs"
+	"github.com/DeepAung/gofiber-library/types"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -30,12 +30,12 @@ func NewDB(cfg *configs.Config) *gorm.DB {
 	}
 	println("DB opened")
 
-	err = models.InitModel(db)
+	err = db.SetupJoinTable(&types.User{}, "FavBooks", &types.UserFavbooks{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Book{})
+	db.AutoMigrate(&types.User{}, &types.Book{})
 	println("DB auto migrated")
 
 	return db

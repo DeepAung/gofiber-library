@@ -1,11 +1,11 @@
-package usersService
+package services
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/pkg/configs"
+	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -29,10 +29,10 @@ const (
 	RefreshTokenExpTime = 7 * 24 * time.Hour
 )
 
-func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
-	user := new(models.User)
+func (s *UsersService) Login(loginReq *types.LoginReq, c *fiber.Ctx) error {
+	user := new(types.User)
 	err := s.db.
-		Where(&models.User{Username: loginReq.Username}).
+		Where(&types.User{Username: loginReq.Username}).
 		First(user).Error
 	if err != nil {
 		return fmt.Errorf("user not found")
@@ -61,7 +61,7 @@ func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 	}
 
 	err = s.db.
-		Model(&models.User{}).
+		Model(&types.User{}).
 		Where("id = ?", user.ID).
 		Update("refresh_token", refreshToken).
 		Error
@@ -75,7 +75,7 @@ func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 	return nil
 }
 
-func (s *UsersService) Register(registerReq *models.RegisterReq) error {
+func (s *UsersService) Register(registerReq *types.RegisterReq) error {
 	if registerReq.Password != registerReq.Password2 {
 		return fmt.Errorf("password is not the same")
 	}
@@ -85,7 +85,7 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 		return err
 	}
 
-	user := models.User{
+	user := types.User{
 		Username: registerReq.Username,
 		Password: hashedPassword,
 	}
@@ -97,7 +97,7 @@ func (s *UsersService) Register(registerReq *models.RegisterReq) error {
 	return nil
 }
 
-func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*models.JwtPayload, error) {
+func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*types.JwtPayload, error) {
 	cookieRefreshToken := c.Cookies("refresh_token")
 	if cookieRefreshToken == "" {
 		return nil, fmt.Errorf("refresh token not found")
@@ -109,7 +109,7 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*models.JwtPayload, error) {
 	}
 
 	dbRefreshToken := ""
-	err = s.db.Model(&models.User{}).
+	err = s.db.Model(&types.User{}).
 		Where("id = ?", payload.ID).
 		Select("refresh_token").
 		First(&dbRefreshToken).
@@ -141,7 +141,7 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*models.JwtPayload, error) {
 	}
 
 	err = s.db.
-		Model(&models.User{}).
+		Model(&types.User{}).
 		Where("id = ?", payload.ID).
 		Update("refresh_token", newRefreshToken).
 		Error
@@ -158,7 +158,7 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*models.JwtPayload, error) {
 func (s *UsersService) VerifyTokenByCookie(
 	c *fiber.Ctx,
 	cookieName string,
-) (*models.JwtPayload, error) {
+) (*types.JwtPayload, error) {
 	tokenString := c.Cookies(cookieName)
 	if tokenString == "" {
 		return nil, fmt.Errorf("token not found")
@@ -167,10 +167,10 @@ func (s *UsersService) VerifyTokenByCookie(
 	return s.VerifyToken(tokenString)
 }
 
-func (s *UsersService) VerifyToken(tokenString string) (*models.JwtPayload, error) {
+func (s *UsersService) VerifyToken(tokenString string) (*types.JwtPayload, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		&models.JwtClaim{},
+		&types.JwtClaim{},
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(s.cfg.JwtSecret), nil
 		},
@@ -179,7 +179,7 @@ func (s *UsersService) VerifyToken(tokenString string) (*models.JwtPayload, erro
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*models.JwtClaim)
+	claims, ok := token.Claims.(*types.JwtClaim)
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
@@ -213,8 +213,8 @@ func (s *UsersService) GenerateToken(
 	username string,
 	expTime time.Duration,
 ) (string, error) {
-	claims := models.JwtClaim{
-		Payload: models.JwtPayload{
+	claims := types.JwtClaim{
+		Payload: types.JwtPayload{
 			ID:       userId,
 			Username: username,
 			Exp:      time.Now().Add(expTime).Unix(),
@@ -237,7 +237,7 @@ func (s *UsersService) CheckPassword(password string, hashedPassword string) boo
 
 func (s *UsersService) IsAdmin(id int) (bool, error) {
 	var isAdmin bool
-	err := s.db.Model(&models.User{}).Where("id = ?", id).Select("is_admin").First(&isAdmin).Error
+	err := s.db.Model(&types.User{}).Where("id = ?", id).Select("is_admin").First(&isAdmin).Error
 	if err != nil {
 		return false, err
 	}

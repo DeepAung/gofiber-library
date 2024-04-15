@@ -3,14 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/DeepAung/gofiber-library/modules/books/booksHandler"
-	"github.com/DeepAung/gofiber-library/modules/books/booksService"
-	"github.com/DeepAung/gofiber-library/modules/users/usersHandler"
-	"github.com/DeepAung/gofiber-library/modules/users/usersService"
-	"github.com/DeepAung/gofiber-library/modules/views/viewsHandler"
+	"github.com/DeepAung/gofiber-library/handlers"
 	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
+	"github.com/DeepAung/gofiber-library/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -56,13 +53,13 @@ func (s *server) initRoutes() {
 	myvalidator := utils.NewMyValidator()
 	myerror := utils.NewMyError()
 
-	usersService := usersService.NewUsersService(s.DB, s.Cfg)
-	usersHandler.NewUsersHandler(api, myvalidator, myerror, usersService, s.Mid)
+	usersService := services.NewUsersService(s.DB, s.Cfg)
+	handlers.NewUsersHandler(api, myvalidator, myerror, usersService, s.Mid)
 
-	booksService := booksService.NewBooksService(s.DB)
-	booksHandler.NewBooksHandler(api, myvalidator, myerror, booksService, usersService, s.Mid)
+	booksService := services.NewBooksService(s.DB)
+	handlers.NewBooksHandler(api, myvalidator, myerror, booksService, usersService, s.Mid)
 
-	viewsHandler.NewViewsHandler(s.App, myerror, usersService, booksService, s.Mid, s.Cfg)
+	handlers.NewViewsHandler(s.App, myerror, usersService, booksService, s.Mid, s.Cfg)
 
 	s.App.Use(s.Mid.PageNotFound(usersService))
 }
