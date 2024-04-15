@@ -1,11 +1,11 @@
-package databases
+package db
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/models"
+	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

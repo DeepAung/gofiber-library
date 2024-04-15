@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/models"
+	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -24,8 +24,10 @@ func NewUsersService(db *gorm.DB, cfg *configs.Config) *UsersService {
 	}
 }
 
-const AccessTokenExpTime = 15 * time.Minute
-const RefreshTokenExpTime = 7 * 24 * time.Hour
+const (
+	AccessTokenExpTime  = 15 * time.Minute
+	RefreshTokenExpTime = 7 * 24 * time.Hour
+)
 
 func (s *UsersService) Login(loginReq *models.LoginReq, c *fiber.Ctx) error {
 	user := new(models.User)
@@ -173,7 +175,6 @@ func (s *UsersService) VerifyToken(tokenString string) (*models.JwtPayload, erro
 			return []byte(s.cfg.JwtSecret), nil
 		},
 	)
-
 	if err != nil {
 		return nil, err
 	}

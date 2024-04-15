@@ -3,10 +3,10 @@ package viewsHandler
 import (
 	"strconv"
 
-	"github.com/DeepAung/gofiber-library/configs"
 	"github.com/DeepAung/gofiber-library/modules/books/booksService"
 	"github.com/DeepAung/gofiber-library/modules/models"
 	"github.com/DeepAung/gofiber-library/modules/users/usersService"
+	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
 	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/gofiber/fiber/v2"

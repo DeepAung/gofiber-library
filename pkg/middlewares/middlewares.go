@@ -12,6 +12,21 @@ func NewMiddleware() *Middleware {
 	return &Middleware{}
 }
 
+func (m *Middleware) PageNotFound(usersService *usersService.UsersService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
+
+		return c.Render("error", fiber.Map{
+			"IsAuthenticated": err == nil,
+			"Payload":         payload,
+			"ErrorTitle":      "Error 404",
+			"ErrorDetail":     "This page is not found",
+		},
+			"layouts/main",
+		)
+	}
+}
+
 func (m *Middleware) SetIsAdmin(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, ok := c.Locals("payload").(*models.JwtPayload)
@@ -75,7 +90,6 @@ func (m *Middleware) JwtAccessTokenAuth(usersService *usersService.UsersService)
 func (m *Middleware) JwtRefreshTokenAuth(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		payload, err := usersService.VerifyTokenByCookie(c, "refresh_token")
-
 		if err != nil {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")
@@ -89,7 +103,6 @@ func (m *Middleware) JwtRefreshTokenAuth(usersService *usersService.UsersService
 func (m *Middleware) OnlyUnauthorizedAuth(usersService *usersService.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		_, err := usersService.VerifyTokenByCookie(c, "access_token")
-
 		if err != nil {
 			return c.Next()
 		}
