@@ -121,19 +121,9 @@ func (h *ViewsHandler) CreateView(c *fiber.Ctx) error {
 }
 
 func (h *ViewsHandler) LoginView(c *fiber.Ctx) error {
-	return c.Render("login", fiber.Map{
-		"IsAuthenticated": false,
-		"Payload":         nil,
-	},
-		"layouts/main",
-	)
+	return c.Render("login", nil, "layouts/main")
 }
 
 func (h *ViewsHandler) RegisterView(c *fiber.Ctx) error {
-	return c.Render("register", fiber.Map{
-		"IsAuthenticated": false,
-		"Payload":         nil,
-	},
-		"layouts/main",
-	)
+	return c.Render("register", nil, "layouts/main")
 }

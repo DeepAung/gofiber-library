@@ -1,12 +1,14 @@
 {{if .OnAdminPage}}
 
 <form hx-ext="json-enc, response-targets" hx-put="/api/books/{{.Book.ID}}" hx-target-error="#error-messages"
-  class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
-  <input type="submit" value="Update" class="btn btn-success" />
-  <a href="/{{if .OnAdminPage}}admin{{end}}" class="btn btn-warning">Cancel</a>
-  <button hx-delete="/api/books/{{.Book.ID}}" type="button" class="btn btn-error">
-    Delete
-  </button>
+  class="h-[calc(100vh-60px)] sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
+  <div class="flex gap-3">
+    <input type="submit" value="Update" class="grow btn btn-success" />
+    <a href="/{{if .OnAdminPage}}admin{{end}}" class="grow btn btn-warning">Cancel</a>
+    <button hx-delete="/api/books/{{.Book.ID}}" type="button" class="grow btn btn-error">
+      Delete
+    </button>
+  </div>
 
   <div id="error-messages"></div>
 
@@ -20,9 +22,10 @@
   <input type="text" name="description" value="{{.Book.Desc}}" class="p-2 bg-neutral-200 border-black rounded-md" />
 
   <label for="content" class="font-bold">Content</label>
-  <textarea name="content" cols="10" class="p-2 bg-neutral-200 border-black rounded-md">
-    {{.Book.Content}}
-  </textarea>
+  <textarea id="content" name="content" class="flex-auto p-2 bg-neutral-200 border-black rounded-md"></textarea>
+  <script>
+    document.getElementById("content").innerHTML = "{{.Book.Content}}";
+  </script>
 </form>
 
 {{else}}

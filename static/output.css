@@ -949,6 +949,18 @@ html {
     }
   }
 
+  .btn-outline.btn-info:hover {
+    --tw-text-opacity: 1;
+    color: var(--fallback-inc,oklch(var(--inc)/var(--tw-text-opacity)));
+  }
+
+  @supports (color: color-mix(in oklab, black, black)) {
+    .btn-outline.btn-info:hover {
+      background-color: color-mix(in oklab, var(--fallback-in,oklch(var(--in)/1)) 90%, black);
+      border-color: color-mix(in oklab, var(--fallback-in,oklch(var(--in)/1)) 90%, black);
+    }
+  }
+
   .btn-outline.btn-warning:hover {
     --tw-text-opacity: 1;
     color: var(--fallback-wac,oklch(var(--wac)/var(--tw-text-opacity)));
@@ -1090,6 +1102,10 @@ html {
     --btn-color: var(--fallback-n);
   }
 
+  .btn-info {
+    --btn-color: var(--fallback-in);
+  }
+
   .btn-success {
     --btn-color: var(--fallback-su);
   }
@@ -1178,6 +1194,10 @@ html {
     --btn-color: var(--n);
   }
 
+  .btn-info {
+    --btn-color: var(--in);
+  }
+
   .btn-success {
     --btn-color: var(--su);
   }
@@ -1201,6 +1221,12 @@ html {
   --tw-text-opacity: 1;
   color: var(--fallback-nc,oklch(var(--nc)/var(--tw-text-opacity)));
   outline-color: var(--fallback-n,oklch(var(--n)/1));
+}
+
+.btn-info {
+  --tw-text-opacity: 1;
+  color: var(--fallback-inc,oklch(var(--inc)/var(--tw-text-opacity)));
+  outline-color: var(--fallback-in,oklch(var(--in)/1));
 }
 
 .btn-success {
@@ -1286,6 +1312,11 @@ html {
 .btn-outline.btn-success.btn-active {
   --tw-text-opacity: 1;
   color: var(--fallback-suc,oklch(var(--suc)/var(--tw-text-opacity)));
+}
+
+.btn-outline.btn-info {
+  --tw-text-opacity: 1;
+  color: var(--fallback-in,oklch(var(--in)/var(--tw-text-opacity)));
 }
 
 .btn-outline.btn-info.btn-active {
@@ -1758,12 +1789,36 @@ html {
   position: fixed;
 }
 
+.absolute {
+  position: absolute;
+}
+
+.relative {
+  position: relative;
+}
+
 .bottom-4 {
   bottom: 1rem;
 }
 
 .right-\[5vw\] {
   right: 5vw;
+}
+
+.left-5 {
+  left: 1.25rem;
+}
+
+.top-5 {
+  top: 1.25rem;
+}
+
+.top-0 {
+  top: 0px;
+}
+
+.top-3 {
+  top: 0.75rem;
 }
 
 .mx-auto {
@@ -1832,8 +1887,32 @@ html {
   height: 100vh;
 }
 
+.h-\[calc\(100vh-60px\)\] {
+  height: calc(100vh - 60px);
+}
+
 .w-full {
   width: 100%;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-initial {
+  flex: 0 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.grow {
+  flex-grow: 1;
 }
 
 .cursor-pointer {
@@ -1905,6 +1984,10 @@ html {
 
 .p-5 {
   padding: 1.25rem;
+}
+
+.p-4 {
+  padding: 1rem;
 }
 
 .px-10 {

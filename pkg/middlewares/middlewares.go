@@ -12,9 +12,9 @@ func NewMiddleware() *Middleware {
 	return &Middleware{}
 }
 
-func (m *Middleware) PageNotFound(usersService *services.UsersService) fiber.Handler {
+func (m *Middleware) PageNotFound(usersSvc *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, err := usersService.VerifyToken(c.Cookies("access_token"))
+		payload, err := usersSvc.VerifyToken(c.Cookies("access_token"))
 
 		return c.Render("error", fiber.Map{
 			"IsAuthenticated": err == nil,
@@ -27,34 +27,54 @@ func (m *Middleware) PageNotFound(usersService *services.UsersService) fiber.Han
 	}
 }
 
-func (m *Middleware) SetIsAdmin(usersService *services.UsersService) fiber.Handler {
+func (m *Middleware) JwtAccessTokenAuth(usersSvc *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, ok := c.Locals("payload").(*types.JwtPayload)
-		if !ok {
-			usersService.ClearToken(c)
-			return c.Redirect("/login")
-		}
-
-		isAdmin, err := usersService.IsAdmin(payload.ID)
+		payload, err := usersSvc.VerifyToken(c.Cookies("access_token"))
 		if err != nil {
-			return c.Redirect("/")
+			if payload, err = usersSvc.UpdateTokens(c); err != nil {
+				usersSvc.ClearToken(c)
+				return c.Redirect("/login")
+			}
 		}
 
-		c.Locals("isAdmin", isAdmin)
-
+		c.Locals("payload", payload)
 		return c.Next()
 	}
 }
 
-func (m *Middleware) OnlyAdmin(usersService *services.UsersService) fiber.Handler {
+func (m *Middleware) JwtRefreshTokenAuth(usersSvc *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, ok := c.Locals("payload").(*types.JwtPayload)
-		if !ok {
-			usersService.ClearToken(c)
+		payload, err := usersSvc.VerifyToken(c.Cookies("refresh_token"))
+		if err != nil {
+			usersSvc.ClearToken(c)
 			return c.Redirect("/login")
 		}
 
-		isAdmin, err := usersService.IsAdmin(payload.ID)
+		c.Locals("payload", payload)
+		return c.Next()
+	}
+}
+
+func (m *Middleware) OnlyUnauthorizedAuth(usersSvc *services.UsersService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		_, err := usersSvc.VerifyToken(c.Cookies("access_token"))
+		if err != nil {
+			return c.Next()
+		}
+
+		return c.Redirect("/")
+	}
+}
+
+func (m *Middleware) OnlyAdmin(usersSvc *services.UsersService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		payload, ok := c.Locals("payload").(*types.JwtPayload)
+		if !ok {
+			usersSvc.ClearToken(c)
+			return c.Redirect("/login")
+		}
+
+		isAdmin, err := usersSvc.IsAdmin(payload.ID)
 		if err != nil {
 			return c.Redirect("/")
 		}
@@ -68,45 +88,21 @@ func (m *Middleware) OnlyAdmin(usersService *services.UsersService) fiber.Handle
 	}
 }
 
-func (m *Middleware) JwtAccessTokenAuth(usersService *services.UsersService) fiber.Handler {
+func (m *Middleware) SetIsAdmin(usersSvc *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, err := usersService.VerifyToken(c.Cookies("access_token"))
-		if err == nil {
-			c.Locals("payload", payload)
-			return c.Next()
-		}
-
-		payload, err = usersService.UpdateTokens(c)
-		if err != nil {
-			usersService.ClearToken(c)
+		payload, ok := c.Locals("payload").(*types.JwtPayload)
+		if !ok {
+			usersSvc.ClearToken(c)
 			return c.Redirect("/login")
 		}
 
-		c.Locals("payload", payload)
-		return c.Next()
-	}
-}
-
-func (m *Middleware) JwtRefreshTokenAuth(usersService *services.UsersService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		payload, err := usersService.VerifyToken(c.Cookies("refresh_token"))
+		isAdmin, err := usersSvc.IsAdmin(payload.ID)
 		if err != nil {
-			usersService.ClearToken(c)
-			return c.Redirect("/login")
+			return c.Redirect("/")
 		}
 
-		c.Locals("payload", payload)
+		c.Locals("isAdmin", isAdmin)
+
 		return c.Next()
-	}
-}
-
-func (m *Middleware) OnlyUnauthorizedAuth(usersService *services.UsersService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		_, err := usersService.VerifyToken(c.Cookies("access_token"))
-		if err != nil {
-			return c.Next()
-		}
-
-		return c.Redirect("/")
 	}
 }

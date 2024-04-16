@@ -81,10 +81,12 @@ func (s *server) BooksRouter(
 	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
 	onlyAdmin := s.Mid.OnlyAdmin(usersSvc)
 
-	r.Post("/books", onlyAuthorized, onlyAdmin, handler.CreateBook)
-	r.Put("/books/:id", onlyAuthorized, onlyAdmin, handler.UpdateBook)
-	r.Delete("/books/:id", onlyAuthorized, onlyAdmin, handler.DeleteBook)
-	r.Post("/books/:id/favorite", onlyAuthorized, handler.ToggleFavoriteBook)
+	book := r.Group("/books", onlyAuthorized)
+
+	book.Post("/", onlyAdmin, handler.CreateBook)
+	book.Put("/:id", onlyAdmin, handler.UpdateBook)
+	book.Delete("/:id", onlyAdmin, handler.DeleteBook)
+	book.Post("/:id/favorite", handler.ToggleFavoriteBook)
 }
 
 func (s *server) ViewsRouter(
@@ -110,7 +112,8 @@ func (s *server) ViewsRouter(
 	r.Get("/", onlyAuthorized, setIsAdmin, handler.IndexView)
 	r.Get("/books/:id", onlyAuthorized, setIsAdmin, handler.DetailView)
 
-	r.Get("/admin", onlyAuthorized, onlyAdmin, setOnAdminPage, handler.IndexView)
-	r.Get("/admin/books/:id", onlyAuthorized, onlyAdmin, setOnAdminPage, handler.DetailView)
-	r.Get("/admin/create", onlyAuthorized, onlyAdmin, setOnAdminPage, handler.CreateView)
+	admin := r.Group("/admin", onlyAuthorized, onlyAdmin, setOnAdminPage)
+	admin.Get("/", handler.IndexView)
+	admin.Get("/books/:id", handler.DetailView)
+	admin.Get("/create", handler.CreateView)
 }
