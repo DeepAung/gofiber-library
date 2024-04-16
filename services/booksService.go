@@ -89,13 +89,13 @@ func (s *BooksService) ToggleFavoriteBook(userId int, bookId int) (bool, error) 
 	}
 
 	if isFavorite {
-		return s.UnfavoriteBook(userId, bookId)
+		return s.unfavoriteBook(userId, bookId)
 	} else {
-		return s.FavoriteBook(userId, bookId)
+		return s.favoriteBook(userId, bookId)
 	}
 }
 
-func (s *BooksService) FavoriteBook(userId int, bookId int) (bool, error) {
+func (s *BooksService) favoriteBook(userId int, bookId int) (bool, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Create(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
 		if err != nil {
@@ -115,7 +115,7 @@ func (s *BooksService) FavoriteBook(userId int, bookId int) (bool, error) {
 	return true, err
 }
 
-func (s *BooksService) UnfavoriteBook(userId int, bookId int) (bool, error) {
+func (s *BooksService) unfavoriteBook(userId int, bookId int) (bool, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Delete(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
 		if err != nil {

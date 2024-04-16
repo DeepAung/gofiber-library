@@ -9,22 +9,16 @@ import (
 )
 
 type UsersHandler struct {
-	validator    *utils.MyValidator
-	myerror      *utils.MyError
 	usersService *services.UsersService
 	mid          *middlewares.Middleware
 }
 
 func NewUsersHandler(
 	r fiber.Router,
-	validator *utils.MyValidator,
-	myerror *utils.MyError,
 	usersService *services.UsersService,
 	mid *middlewares.Middleware,
 ) {
 	h := &UsersHandler{
-		validator:    validator,
-		myerror:      myerror,
 		usersService: usersService,
 		mid:          mid,
 	}
@@ -42,16 +36,16 @@ func NewUsersHandler(
 func (h *UsersHandler) Login(c *fiber.Ctx) error {
 	loginReq := new(types.LoginReq)
 	if err := c.BodyParser(loginReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
-	if err := h.validator.Validate(loginReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+	if err := utils.Validate(loginReq); err != nil {
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	err := h.usersService.Login(loginReq, c)
 	if err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/")
@@ -61,16 +55,16 @@ func (h *UsersHandler) Login(c *fiber.Ctx) error {
 func (h *UsersHandler) Register(c *fiber.Ctx) error {
 	registerReq := new(types.RegisterReq)
 	if err := c.BodyParser(registerReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
-	if err := h.validator.Validate(registerReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+	if err := utils.Validate(registerReq); err != nil {
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	err := h.usersService.Register(registerReq)
 	if err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/login")

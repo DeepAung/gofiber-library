@@ -12,7 +12,6 @@ import (
 )
 
 type ViewsHandler struct {
-	myerror      *utils.MyError
 	usersService *services.UsersService
 	booksService *services.BooksService
 	mid          *middlewares.Middleware
@@ -21,14 +20,12 @@ type ViewsHandler struct {
 
 func NewViewsHandler(
 	r fiber.Router,
-	myerror *utils.MyError,
 	usersService *services.UsersService,
 	booksService *services.BooksService,
 	mid *middlewares.Middleware,
 	cfg *configs.Config,
 ) {
 	h := &ViewsHandler{
-		myerror:      myerror,
 		usersService: usersService,
 		booksService: booksService,
 		mid:          mid,
@@ -65,7 +62,7 @@ func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
 	onAdminPage := c.Locals("onAdminPage") == true
 
 	if err != nil {
-		return h.myerror.RenderErrorPage(
+		return utils.RenderErrorPage(
 			c,
 			err.Error(),
 			isAuthenticated,
@@ -92,7 +89,7 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return h.myerror.RenderErrorPage(
+		return utils.RenderErrorPage(
 			c,
 			"id should be integer",
 			isAuthenticated,
@@ -104,7 +101,7 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 
 	book, err := h.booksService.GetBook(id)
 	if err != nil {
-		return h.myerror.RenderErrorPage(
+		return utils.RenderErrorPage(
 			c,
 			"id should be integer",
 			isAuthenticated,

@@ -5,13 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type MyError struct{}
-
-func NewMyError() *MyError {
-	return &MyError{}
-}
-
-func (e *MyError) SendErrorText(c *fiber.Ctx, msg string) error {
+func RenderErrorText(c *fiber.Ctx, msg string) error {
 	return c.
 		Status(fiber.StatusBadRequest).
 		Render("components/error-text", fiber.Map{
@@ -19,7 +13,7 @@ func (e *MyError) SendErrorText(c *fiber.Ctx, msg string) error {
 		})
 }
 
-func (e *MyError) RenderErrorPage(
+func RenderErrorPage(
 	c *fiber.Ctx,
 	msg string,
 	isAuthenticated bool,

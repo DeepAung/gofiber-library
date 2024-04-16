@@ -1,35 +1,29 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
 )
 
-type MyValidator struct {
-	validator *validator.Validate
-}
+var validate = validator.New()
 
-func NewMyValidator() *MyValidator {
-	return &MyValidator{
-		validator: validator.New(),
-	}
-}
-
-func (m *MyValidator) Validate(mystruct interface{}) error {
-	err := m.validator.Struct(mystruct)
+func Validate(s interface{}) error {
+	err := validate.Struct(s)
 	if err == nil {
 		return nil
 	}
 
-	msg := ""
-	for _, e := range err.(validator.ValidationErrors) {
-		msg += fmt.Sprintf("[%s]: '%v' | Needs to implement '%s'\n", e.Field(), e.Value(), e.Tag())
-	}
+	switch err := err.(type) {
+	case validator.ValidationErrors:
+		msg := ""
+		for _, e := range err {
+			msg += fmt.Sprintf("[%s]: '%v' | Needs to implement '%s'\n", e.Field(), e.Value(), e.Tag())
+		}
+		return errors.New(msg)
 
-	if msg == "" {
-		return nil
+	default:
+		return err
 	}
-
-	return fmt.Errorf(msg)
 }

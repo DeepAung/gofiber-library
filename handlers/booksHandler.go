@@ -11,8 +11,6 @@ import (
 )
 
 type BooksHandler struct {
-	validator    *utils.MyValidator
-	myerror      *utils.MyError
 	booksService *services.BooksService
 	usersService *services.UsersService
 	mid          *middlewares.Middleware
@@ -20,15 +18,11 @@ type BooksHandler struct {
 
 func NewBooksHandler(
 	r fiber.Router,
-	validator *utils.MyValidator,
-	myerror *utils.MyError,
 	booksService *services.BooksService,
 	usersService *services.UsersService,
 	mid *middlewares.Middleware,
 ) {
 	h := &BooksHandler{
-		validator:    validator,
-		myerror:      myerror,
 		booksService: booksService,
 		usersService: usersService,
 		mid:          mid,
@@ -46,16 +40,16 @@ func NewBooksHandler(
 func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
 	bookReq := new(types.BookReq)
 	if err := c.BodyParser(bookReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
-	if err := h.validator.Validate(bookReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+	if err := utils.Validate(bookReq); err != nil {
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	err := h.booksService.CreateBook(bookReq)
 	if err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/admin")
@@ -65,21 +59,21 @@ func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
 func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return h.myerror.SendErrorText(c, "id should be integer")
+		return utils.RenderErrorText(c, "id should be integer")
 	}
 
 	bookReq := new(types.BookReq)
 	if err := c.BodyParser(bookReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
-	if err := h.validator.Validate(bookReq); err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+	if err := utils.Validate(bookReq); err != nil {
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	err = h.booksService.UpdateBook(bookReq, id)
 	if err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/admin")
@@ -89,12 +83,12 @@ func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
 func (h *BooksHandler) DeleteBook(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return h.myerror.SendErrorText(c, "id should be integer")
+		return utils.RenderErrorText(c, "id should be integer")
 	}
 
 	err = h.booksService.DeleteBook(id)
 	if err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	c.Response().Header.Set("HX-Redirect", "/admin")
@@ -104,22 +98,22 @@ func (h *BooksHandler) DeleteBook(c *fiber.Ctx) error {
 func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {
 	bookId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return h.myerror.SendErrorText(c, "id should be integer")
+		return utils.RenderErrorText(c, "id should be integer")
 	}
 
 	book, err := h.booksService.GetBook(bookId)
 	if err != nil {
-		return h.myerror.SendErrorText(c, "book not found")
+		return utils.RenderErrorText(c, "book not found")
 	}
 
 	payload, ok := c.Locals("payload").(*types.JwtPayload)
 	if !ok {
-		return h.myerror.SendErrorText(c, "authorization error")
+		return utils.RenderErrorText(c, "authorization error")
 	}
 
 	isFavorite, err := h.booksService.ToggleFavoriteBook(payload.ID, bookId)
 	if err != nil {
-		return h.myerror.SendErrorText(c, err.Error())
+		return utils.RenderErrorText(c, err.Error())
 	}
 
 	if isFavorite {

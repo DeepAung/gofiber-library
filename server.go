@@ -6,7 +6,6 @@ import (
 	"github.com/DeepAung/gofiber-library/handlers"
 	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
-	"github.com/DeepAung/gofiber-library/pkg/utils"
 	"github.com/DeepAung/gofiber-library/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -50,16 +49,13 @@ func (s *server) Start() {
 func (s *server) initRoutes() {
 	api := s.App.Group("/api")
 
-	myvalidator := utils.NewMyValidator()
-	myerror := utils.NewMyError()
-
 	usersService := services.NewUsersService(s.DB, s.Cfg)
-	handlers.NewUsersHandler(api, myvalidator, myerror, usersService, s.Mid)
+	handlers.NewUsersHandler(api, usersService, s.Mid)
 
 	booksService := services.NewBooksService(s.DB)
-	handlers.NewBooksHandler(api, myvalidator, myerror, booksService, usersService, s.Mid)
+	handlers.NewBooksHandler(api, booksService, usersService, s.Mid)
 
-	handlers.NewViewsHandler(s.App, myerror, usersService, booksService, s.Mid, s.Cfg)
+	handlers.NewViewsHandler(s.App, usersService, booksService, s.Mid, s.Cfg)
 
 	s.App.Use(s.Mid.PageNotFound(usersService))
 }
