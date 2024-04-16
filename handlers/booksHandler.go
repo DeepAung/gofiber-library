@@ -17,24 +17,15 @@ type BooksHandler struct {
 }
 
 func NewBooksHandler(
-	r fiber.Router,
 	booksService *services.BooksService,
 	usersService *services.UsersService,
 	mid *middlewares.Middleware,
-) {
-	h := &BooksHandler{
+) *BooksHandler {
+	return &BooksHandler{
 		booksService: booksService,
 		usersService: usersService,
 		mid:          mid,
 	}
-
-	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
-	onlyAdmin := mid.OnlyAdmin(usersService)
-
-	r.Post("/books", onlyAuthorized, onlyAdmin, h.CreateBook)
-	r.Put("/books/:id", onlyAuthorized, onlyAdmin, h.UpdateBook)
-	r.Delete("/books/:id", onlyAuthorized, onlyAdmin, h.DeleteBook)
-	r.Post("/books/:id/favorite", onlyAuthorized, h.ToggleFavoriteBook)
 }
 
 func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {

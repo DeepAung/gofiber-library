@@ -14,23 +14,13 @@ type UsersHandler struct {
 }
 
 func NewUsersHandler(
-	r fiber.Router,
 	usersService *services.UsersService,
 	mid *middlewares.Middleware,
-) {
-	h := &UsersHandler{
+) *UsersHandler {
+	return &UsersHandler{
 		usersService: usersService,
 		mid:          mid,
 	}
-
-	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
-	onlyUnauthorized := mid.OnlyUnauthorizedAuth(usersService)
-
-	r.Post("/login", onlyUnauthorized, h.Login)
-	r.Post("/register", onlyUnauthorized, h.Register)
-
-	r.Post("/logout", onlyAuthorized, h.Logout)
-	r.Post("/refresh", onlyAuthorized, h.UpdateTokens)
 }
 
 func (h *UsersHandler) Login(c *fiber.Ctx) error {

@@ -19,38 +19,17 @@ type ViewsHandler struct {
 }
 
 func NewViewsHandler(
-	r fiber.Router,
 	usersService *services.UsersService,
 	booksService *services.BooksService,
 	mid *middlewares.Middleware,
 	cfg *configs.Config,
-) {
-	h := &ViewsHandler{
+) *ViewsHandler {
+	return &ViewsHandler{
 		usersService: usersService,
 		booksService: booksService,
 		mid:          mid,
 		cfg:          cfg,
 	}
-
-	onlyAuthorized := mid.JwtAccessTokenAuth(usersService)
-	onlyUnauthorized := mid.OnlyUnauthorizedAuth(usersService)
-
-	onlyAdmin := mid.OnlyAdmin(usersService)
-	setIsAdmin := mid.SetIsAdmin(usersService)
-	setOnAdminPage := func(c *fiber.Ctx) error {
-		c.Locals("onAdminPage", true)
-		return c.Next()
-	}
-
-	r.Get("/login", onlyUnauthorized, h.LoginView)
-	r.Get("/register", onlyUnauthorized, h.RegisterView)
-
-	r.Get("/", onlyAuthorized, setIsAdmin, h.IndexView)
-	r.Get("/books/:id", onlyAuthorized, setIsAdmin, h.DetailView)
-
-	r.Get("/admin", onlyAuthorized, onlyAdmin, setOnAdminPage, h.IndexView)
-	r.Get("/admin/books/:id", onlyAuthorized, onlyAdmin, setOnAdminPage, h.DetailView)
-	r.Get("/admin/create", onlyAuthorized, onlyAdmin, setOnAdminPage, h.CreateView)
 }
 
 func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {

@@ -47,15 +47,70 @@ func (s *server) Start() {
 }
 
 func (s *server) initRoutes() {
+	usersSvc := services.NewUsersService(s.DB, s.Cfg)
+	booksSvc := services.NewBooksService(s.DB)
+
 	api := s.App.Group("/api")
+	s.UsersRouter(api, usersSvc)
+	s.BooksRouter(api, booksSvc, usersSvc)
+	s.ViewsRouter(s.App, usersSvc, booksSvc)
 
-	usersService := services.NewUsersService(s.DB, s.Cfg)
-	handlers.NewUsersHandler(api, usersService, s.Mid)
+	s.App.Use(s.Mid.PageNotFound(usersSvc))
+}
 
-	booksService := services.NewBooksService(s.DB)
-	handlers.NewBooksHandler(api, booksService, usersService, s.Mid)
+func (s *server) UsersRouter(r fiber.Router, usersSvc *services.UsersService) {
+	handler := handlers.NewUsersHandler(usersSvc, s.Mid)
 
-	handlers.NewViewsHandler(s.App, usersService, booksService, s.Mid, s.Cfg)
+	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
+	onlyUnauthorized := s.Mid.OnlyUnauthorizedAuth(usersSvc)
 
-	s.App.Use(s.Mid.PageNotFound(usersService))
+	r.Post("/login", onlyUnauthorized, handler.Login)
+	r.Post("/register", onlyUnauthorized, handler.Register)
+
+	r.Post("/logout", onlyAuthorized, handler.Logout)
+	r.Post("/refresh", onlyAuthorized, handler.UpdateTokens)
+}
+
+func (s *server) BooksRouter(
+	r fiber.Router,
+	booksSvc *services.BooksService,
+	usersSvc *services.UsersService,
+) {
+	handler := handlers.NewBooksHandler(booksSvc, usersSvc, s.Mid)
+
+	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
+	onlyAdmin := s.Mid.OnlyAdmin(usersSvc)
+
+	r.Post("/books", onlyAuthorized, onlyAdmin, handler.CreateBook)
+	r.Put("/books/:id", onlyAuthorized, onlyAdmin, handler.UpdateBook)
+	r.Delete("/books/:id", onlyAuthorized, onlyAdmin, handler.DeleteBook)
+	r.Post("/books/:id/favorite", onlyAuthorized, handler.ToggleFavoriteBook)
+}
+
+func (s *server) ViewsRouter(
+	r fiber.Router,
+	usersSvc *services.UsersService,
+	booksSvc *services.BooksService,
+) {
+	handler := handlers.NewViewsHandler(usersSvc, booksSvc, s.Mid, s.Cfg)
+
+	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
+	onlyUnauthorized := s.Mid.OnlyUnauthorizedAuth(usersSvc)
+
+	onlyAdmin := s.Mid.OnlyAdmin(usersSvc)
+	setIsAdmin := s.Mid.SetIsAdmin(usersSvc)
+	setOnAdminPage := func(c *fiber.Ctx) error {
+		c.Locals("onAdminPage", true)
+		return c.Next()
+	}
+
+	r.Get("/login", onlyUnauthorized, handler.LoginView)
+	r.Get("/register", onlyUnauthorized, handler.RegisterView)
+
+	r.Get("/", onlyAuthorized, setIsAdmin, handler.IndexView)
+	r.Get("/books/:id", onlyAuthorized, setIsAdmin, handler.DetailView)
+
+	r.Get("/admin", onlyAuthorized, onlyAdmin, setOnAdminPage, handler.IndexView)
+	r.Get("/admin/books/:id", onlyAuthorized, onlyAdmin, setOnAdminPage, handler.DetailView)
+	r.Get("/admin/create", onlyAuthorized, onlyAdmin, setOnAdminPage, handler.CreateView)
 }
