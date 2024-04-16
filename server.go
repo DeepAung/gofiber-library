@@ -76,7 +76,7 @@ func (s *server) BooksRouter(
 	booksSvc *services.BooksService,
 	usersSvc *services.UsersService,
 ) {
-	handler := handlers.NewBooksHandler(booksSvc, usersSvc, s.Mid)
+	handler := handlers.NewBooksHandler(booksSvc, s.Mid)
 
 	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
 	onlyAdmin := s.Mid.OnlyAdmin(usersSvc)
@@ -92,7 +92,7 @@ func (s *server) ViewsRouter(
 	usersSvc *services.UsersService,
 	booksSvc *services.BooksService,
 ) {
-	handler := handlers.NewViewsHandler(usersSvc, booksSvc, s.Mid, s.Cfg)
+	handler := handlers.NewViewsHandler(booksSvc, s.Mid, s.Cfg)
 
 	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
 	onlyUnauthorized := s.Mid.OnlyUnauthorizedAuth(usersSvc)

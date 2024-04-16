@@ -14,7 +14,7 @@ func NewMiddleware() *Middleware {
 
 func (m *Middleware) PageNotFound(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
+		payload, err := usersService.VerifyToken(c.Cookies("access_token"))
 
 		return c.Render("error", fiber.Map{
 			"IsAuthenticated": err == nil,
@@ -70,7 +70,7 @@ func (m *Middleware) OnlyAdmin(usersService *services.UsersService) fiber.Handle
 
 func (m *Middleware) JwtAccessTokenAuth(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, err := usersService.VerifyTokenByCookie(c, "access_token")
+		payload, err := usersService.VerifyToken(c.Cookies("access_token"))
 		if err == nil {
 			c.Locals("payload", payload)
 			return c.Next()
@@ -89,7 +89,7 @@ func (m *Middleware) JwtAccessTokenAuth(usersService *services.UsersService) fib
 
 func (m *Middleware) JwtRefreshTokenAuth(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		payload, err := usersService.VerifyTokenByCookie(c, "refresh_token")
+		payload, err := usersService.VerifyToken(c.Cookies("refresh_token"))
 		if err != nil {
 			usersService.ClearToken(c)
 			return c.Redirect("/login")
@@ -102,7 +102,7 @@ func (m *Middleware) JwtRefreshTokenAuth(usersService *services.UsersService) fi
 
 func (m *Middleware) OnlyUnauthorizedAuth(usersService *services.UsersService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		_, err := usersService.VerifyTokenByCookie(c, "access_token")
+		_, err := usersService.VerifyToken(c.Cookies("access_token"))
 		if err != nil {
 			return c.Next()
 		}

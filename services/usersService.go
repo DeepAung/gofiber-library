@@ -29,33 +29,26 @@ const (
 	RefreshTokenExpTime = 7 * 24 * time.Hour
 )
 
-func (s *UsersService) Login(loginReq *types.LoginReq, c *fiber.Ctx) error {
+func (s *UsersService) Login(req *types.LoginReq, c *fiber.Ctx) error {
 	user := new(types.User)
 	err := s.db.
-		Where(&types.User{Username: loginReq.Username}).
+		Model(&types.User{}).
+		Where("username = ?", req.Username).
 		First(user).Error
 	if err != nil {
 		return fmt.Errorf("user not found")
 	}
 
-	if !s.checkPassword(loginReq.Password, user.Password) {
+	if !s.checkPassword(req.Password, user.Password) {
 		return fmt.Errorf("password incorrect")
 	}
 
-	accessToken, err := s.generateToken(
-		int(user.ID),
-		user.Username,
-		AccessTokenExpTime,
-	)
+	accessToken, err := s.generateToken(int(user.ID), user.Username, AccessTokenExpTime)
 	if err != nil {
 		return err
 	}
 
-	refreshToken, err := s.generateToken(
-		int(user.ID),
-		user.Username,
-		RefreshTokenExpTime,
-	)
+	refreshToken, err := s.generateToken(int(user.ID), user.Username, RefreshTokenExpTime)
 	if err != nil {
 		return err
 	}
@@ -63,8 +56,7 @@ func (s *UsersService) Login(loginReq *types.LoginReq, c *fiber.Ctx) error {
 	err = s.db.
 		Model(&types.User{}).
 		Where("id = ?", user.ID).
-		Update("refresh_token", refreshToken).
-		Error
+		Update("refresh_token", refreshToken).Error
 	if err != nil {
 		return err
 	}
@@ -75,18 +67,18 @@ func (s *UsersService) Login(loginReq *types.LoginReq, c *fiber.Ctx) error {
 	return nil
 }
 
-func (s *UsersService) Register(registerReq *types.RegisterReq) error {
-	if registerReq.Password != registerReq.Password2 {
+func (s *UsersService) Register(req *types.RegisterReq) error {
+	if req.Password != req.Password2 {
 		return fmt.Errorf("password is not the same")
 	}
 
-	hashedPassword, err := s.hashPassword(registerReq.Password)
+	hashedPassword, err := s.hashPassword(req.Password)
 	if err != nil {
 		return err
 	}
 
 	user := types.User{
-		Username: registerReq.Username,
+		Username: req.Username,
 		Password: hashedPassword,
 	}
 	err = s.db.Create(&user).Error
@@ -153,14 +145,6 @@ func (s *UsersService) UpdateTokens(c *fiber.Ctx) (*types.JwtPayload, error) {
 	s.setCookie(c, "refresh_token", newRefreshToken, RefreshTokenExpTime)
 
 	return payload, nil
-}
-
-func (s *UsersService) VerifyTokenByCookie(
-	c *fiber.Ctx,
-	cookieName string,
-) (*types.JwtPayload, error) {
-	tokenString := c.Cookies(cookieName)
-	return s.VerifyToken(tokenString)
 }
 
 func (s *UsersService) VerifyToken(tokenString string) (*types.JwtPayload, error) {

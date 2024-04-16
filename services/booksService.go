@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/DeepAung/gofiber-library/types"
-	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -37,33 +36,34 @@ func (s *BooksService) GetBook(id int) (*types.Book, error) {
 	return book, nil
 }
 
-func (s *BooksService) CreateBook(bookReq *types.BookReq) error {
+func (s *BooksService) CreateBook(req *types.BookReq) error {
 	book := &types.Book{
-		Title:         bookReq.Title,
-		Author:        bookReq.Author,
-		Desc:          bookReq.Desc,
-		Content:       bookReq.Content,
+		Title:         req.Title,
+		Author:        req.Author,
+		Desc:          req.Desc,
+		Content:       req.Content,
 		FavoriteCount: 0,
 	}
 
 	return s.db.Create(book).Error
 }
 
-func (s *BooksService) UpdateBook(bookReq *types.BookReq, id int) error {
-	book := &types.Book{
-		Title:   bookReq.Title,
-		Author:  bookReq.Author,
-		Desc:    bookReq.Desc,
-		Content: bookReq.Content,
-	}
+func (s *BooksService) UpdateBook(req *types.BookReq, id int) error {
+	book := new(types.Book)
+	s.db.First(book)
 
-	return s.db.Where("id = ?", id).Updates(book).Error
+	book.Title = req.Title
+	book.Author = req.Author
+	book.Desc = req.Desc
+	book.Content = req.Content
+
+	return s.db.Save(book).Error
 }
 
 func (s *BooksService) DeleteBook(id int) error {
 	result := s.db.Delete(&types.Book{}, id)
 	if result.RowsAffected == 0 {
-		return fmt.Errorf(fiber.ErrNotFound.Message)
+		return fmt.Errorf("book not found")
 	}
 
 	return nil

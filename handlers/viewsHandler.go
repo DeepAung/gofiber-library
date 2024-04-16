@@ -12,28 +12,25 @@ import (
 )
 
 type ViewsHandler struct {
-	usersService *services.UsersService
-	booksService *services.BooksService
-	mid          *middlewares.Middleware
-	cfg          *configs.Config
+	booksSvc *services.BooksService
+	mid      *middlewares.Middleware
+	cfg      *configs.Config
 }
 
 func NewViewsHandler(
-	usersService *services.UsersService,
-	booksService *services.BooksService,
+	booksSvc *services.BooksService,
 	mid *middlewares.Middleware,
 	cfg *configs.Config,
 ) *ViewsHandler {
 	return &ViewsHandler{
-		usersService: usersService,
-		booksService: booksService,
-		mid:          mid,
-		cfg:          cfg,
+		booksSvc: booksSvc,
+		mid:      mid,
+		cfg:      cfg,
 	}
 }
 
 func (h *ViewsHandler) IndexView(c *fiber.Ctx) error {
-	books, err := h.booksService.GetBooks()
+	books, err := h.booksSvc.GetBooks()
 
 	isAuthenticated := true
 	payload := c.Locals("payload").(*types.JwtPayload)
@@ -78,7 +75,7 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 		)
 	}
 
-	book, err := h.booksService.GetBook(id)
+	book, err := h.booksSvc.GetBook(id)
 	if err != nil {
 		return utils.RenderErrorPage(
 			c,
@@ -90,7 +87,17 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 		)
 	}
 
-	isFavorite, err := h.booksService.GetIsFavorite(payload.ID, id)
+	isFavorite, err := h.booksSvc.GetIsFavorite(payload.ID, id)
+	if err != nil {
+		return utils.RenderErrorPage(
+			c,
+			"get is favorite failed",
+			isAuthenticated,
+			payload,
+			isAdmin,
+			onAdminPage,
+		)
+	}
 
 	return c.Render("detail", fiber.Map{
 		"Book":            book,

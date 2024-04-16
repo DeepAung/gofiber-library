@@ -9,17 +9,14 @@ import (
 )
 
 type UsersHandler struct {
-	usersService *services.UsersService
-	mid          *middlewares.Middleware
+	usersSvc *services.UsersService
+	mid      *middlewares.Middleware
 }
 
-func NewUsersHandler(
-	usersService *services.UsersService,
-	mid *middlewares.Middleware,
-) *UsersHandler {
+func NewUsersHandler(usersSvc *services.UsersService, mid *middlewares.Middleware) *UsersHandler {
 	return &UsersHandler{
-		usersService: usersService,
-		mid:          mid,
+		usersSvc: usersSvc,
+		mid:      mid,
 	}
 }
 
@@ -33,7 +30,7 @@ func (h *UsersHandler) Login(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, err.Error())
 	}
 
-	err := h.usersService.Login(loginReq, c)
+	err := h.usersSvc.Login(loginReq, c)
 	if err != nil {
 		return utils.RenderErrorText(c, err.Error())
 	}
@@ -52,7 +49,7 @@ func (h *UsersHandler) Register(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, err.Error())
 	}
 
-	err := h.usersService.Register(registerReq)
+	err := h.usersSvc.Register(registerReq)
 	if err != nil {
 		return utils.RenderErrorText(c, err.Error())
 	}
@@ -62,14 +59,14 @@ func (h *UsersHandler) Register(c *fiber.Ctx) error {
 }
 
 func (h *UsersHandler) Logout(c *fiber.Ctx) error {
-	h.usersService.ClearToken(c)
+	h.usersSvc.ClearToken(c)
 
 	c.Response().Header.Set("HX-Redirect", "/login")
 	return c.SendStatus(fiber.StatusOK)
 }
 
 func (h *UsersHandler) UpdateTokens(c *fiber.Ctx) error {
-	_, err := h.usersService.UpdateTokens(c)
+	_, err := h.usersSvc.UpdateTokens(c)
 	if err != nil {
 		return err
 	}

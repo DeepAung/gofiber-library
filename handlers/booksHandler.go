@@ -11,20 +11,14 @@ import (
 )
 
 type BooksHandler struct {
-	booksService *services.BooksService
-	usersService *services.UsersService
-	mid          *middlewares.Middleware
+	booksSvc *services.BooksService
+	mid      *middlewares.Middleware
 }
 
-func NewBooksHandler(
-	booksService *services.BooksService,
-	usersService *services.UsersService,
-	mid *middlewares.Middleware,
-) *BooksHandler {
+func NewBooksHandler(booksSvc *services.BooksService, mid *middlewares.Middleware) *BooksHandler {
 	return &BooksHandler{
-		booksService: booksService,
-		usersService: usersService,
-		mid:          mid,
+		booksSvc: booksSvc,
+		mid:      mid,
 	}
 }
 
@@ -38,7 +32,7 @@ func (h *BooksHandler) CreateBook(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, err.Error())
 	}
 
-	err := h.booksService.CreateBook(bookReq)
+	err := h.booksSvc.CreateBook(bookReq)
 	if err != nil {
 		return utils.RenderErrorText(c, err.Error())
 	}
@@ -62,7 +56,7 @@ func (h *BooksHandler) UpdateBook(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, err.Error())
 	}
 
-	err = h.booksService.UpdateBook(bookReq, id)
+	err = h.booksSvc.UpdateBook(bookReq, id)
 	if err != nil {
 		return utils.RenderErrorText(c, err.Error())
 	}
@@ -77,7 +71,7 @@ func (h *BooksHandler) DeleteBook(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, "id should be integer")
 	}
 
-	err = h.booksService.DeleteBook(id)
+	err = h.booksSvc.DeleteBook(id)
 	if err != nil {
 		return utils.RenderErrorText(c, err.Error())
 	}
@@ -92,7 +86,7 @@ func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, "id should be integer")
 	}
 
-	book, err := h.booksService.GetBook(bookId)
+	book, err := h.booksSvc.GetBook(bookId)
 	if err != nil {
 		return utils.RenderErrorText(c, "book not found")
 	}
@@ -102,7 +96,7 @@ func (h *BooksHandler) ToggleFavoriteBook(c *fiber.Ctx) error {
 		return utils.RenderErrorText(c, "authorization error")
 	}
 
-	isFavorite, err := h.booksService.ToggleFavoriteBook(payload.ID, bookId)
+	isFavorite, err := h.booksSvc.ToggleFavoriteBook(payload.ID, bookId)
 	if err != nil {
 		return utils.RenderErrorText(c, err.Error())
 	}
