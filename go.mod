@@ -1,6 +1,6 @@
 module github.com/DeepAung/gofiber-library
 
-go 1.21.3
+go 1.22.1
 
 require (
 	github.com/go-playground/validator/v10 v10.16.0
