@@ -1,59 +1,50 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="shortcut icon" href="#" />
-    <link rel="stylesheet" href="/static/output.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
-    <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
-    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+  <link rel="shortcut icon" href="#" />
+  <link rel="stylesheet" href="/static/output.css" />
 
-    <script type="module" src="https://md-block.verou.me/md-block.js"></script>
-    <script
-      src="https://kit.fontawesome.com/8e504b9924.js"
-      crossorigin="anonymous"
-    ></script>
+  <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+  <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
+  <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 
-    {{if .IsAuthenticated}}
-    <script src="/static/tokensUpdater.js"></script>
-    {{end}}
-  </head>
+  <script type="module" src="https://md-block.verou.me/md-block.js"></script>
+  <script src="https://kit.fontawesome.com/8e504b9924.js" crossorigin="anonymous"></script>
 
-  <body class="font-sans h-screen">
-    <!-- Navbar -->
-    <div class="h-[60px] px-10 flex justify-between items-center">
-      <div>
-        <a
-          href="/{{if .OnAdminPage}}admin{{end}}"
-          class="text-neutral text-2xl font-bold"
-          >Go Library Website {{if .OnAdminPage}}<span class="text-teal-400"
-            >Admin Page</span
-          >{{end}}</a
-        >
+  {{if .IsAuthenticated}}
+  <script src="/static/tokensUpdater.js"></script>
+  {{end}}
+</head>
 
-        {{if .IsAdmin}} {{if .OnAdminPage}}
-        <a href="/" class="btn btn-neutral btn-sm rounded-md">Normal Page</a>
-        {{else}}
-        <a href="/admin" class="btn btn-accent btn-sm rounded-md">Admin Page</a>
-        {{end}} {{end}}
-      </div>
-      {{if .IsAuthenticated}}
-      <div class="flex gap-3 items-center">
-        <span class="text-xl">{{.Payload.Username}}</span>
-        <span
-          hx-post="/api/logout"
-          class="hover:text-error text-xl font-semibold cursor-pointer"
-          >Logout</span
-        >
-      </div>
+<body class="font-sans h-screen">
+  <!-- Navbar -->
+  <div class="min-h-[60px] px-10 flex flex-col sm:flex-row gap-2 justify-between items-center">
+    <div class="text-center">
+      <a href="/{{if .OnAdminPage}}admin{{end}}" class="text-neutral text-2xl font-bold">Go Library Website {{if
+        .OnAdminPage}}<span class="text-teal-400">Admin Page</span>{{end}}</a>
+
+      {{if .IsAdmin}} {{if .OnAdminPage}}
+      <a href="/" class="btn btn-neutral btn-sm rounded-md">Normal Page</a>
       {{else}}
-      <a href="/login" class="hover:text-info text-xl font-semibold">Login</a>
-      {{end}}
+      <a href="/admin" class="btn btn-accent btn-sm rounded-md">Admin Page</a>
+      {{end}} {{end}}
     </div>
+    {{if .IsAuthenticated}}
+    <div class="flex gap-3 items-center">
+      <span class="text-xl">{{.Payload.Username}}</span>
+      <span hx-post="/api/logout" class="hover:text-error text-xl font-semibold cursor-pointer">Logout</span>
+    </div>
+    {{else}}
+    <a href="/login" class="hover:text-info text-xl font-semibold">Login</a>
+    {{end}}
+  </div>
+  <!-- End Navbar -->
 
-    {{embed}}
-  </body>
+  {{embed}}
+</body>
+
 </html>
