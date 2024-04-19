@@ -14,13 +14,13 @@
 
   <script type="module" src="https://md-block.verou.me/md-block.js"></script>
   <script src="https://kit.fontawesome.com/8e504b9924.js" crossorigin="anonymous"></script>
-
-  {{if .IsAuthenticated}}
-  <script src="/static/tokensUpdater.js"></script>
-  {{end}}
 </head>
 
 <body class="font-sans h-screen">
+  {{if .IsAuthenticated}}
+  <div hx-post="/api/refresh" hx-trigger="load, every 14m" class="hidden"></div>
+  {{end}}
+
   <!-- Navbar -->
   <div class="min-h-[60px] px-10 flex flex-col sm:flex-row gap-2 justify-between items-center">
     <div class="text-center">
