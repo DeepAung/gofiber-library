@@ -1,22 +1,40 @@
-<form hx-ext="json-enc, response-targets" hx-post="/api/books" hx-target-error="#error-messages"
-  class="min-h-[calc(100vh-60px)] sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
+<form
+  hx-post="/api/books"
+  hx-target-error="#error-messages"
+  class="min-h-full sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3"
+>
   <div class="flex gap-3 flex-col min-[360px]:flex-row">
-    <input type="submit" value="Create" class="flex-auto btn btn-success" />
     <a href="/admin" class="flex-auto btn btn-warning">Cancel</a>
+    <input type="submit" value="Create" class="flex-auto btn btn-success" />
   </div>
 
   <div id="error-messages"></div>
 
   <label for="title" class="font-bold">Title</label>
-  <input type="text" name="title" class="p-2 bg-neutral-200 border-black rounded-md" />
+  <input
+    type="text"
+    name="title"
+    class="p-2 bg-neutral-200 border-black rounded-md"
+  />
 
   <label for="author" class="font-bold">Author</label>
-  <input type="text" name="author" class="p-2 bg-neutral-200 border-black rounded-md" />
+  <input
+    type="text"
+    name="author"
+    class="p-2 bg-neutral-200 border-black rounded-md"
+  />
 
   <label for="description" class="font-bold">Description</label>
-  <input type="text" name="description" class="p-2 bg-neutral-200 border-black rounded-md" />
+  <input
+    type="text"
+    name="description"
+    class="p-2 bg-neutral-200 border-black rounded-md"
+  />
 
   <label for="content" class="font-bold">Content</label>
-  <textarea name="content" class="flex-auto min-h-[15rem] p-2 bg-neutral-200 border-black rounded-md">
+  <textarea
+    name="content"
+    class="flex-auto min-h-[15rem] p-2 bg-neutral-200 border-black rounded-md"
+  >
   </textarea>
 </form>

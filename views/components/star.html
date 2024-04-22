@@ -1,5 +1,9 @@
 <span id="star" class="ml-8">
-  <span hx-post="/api/books/{{.Book.ID}}/favorite" hx-target="#star" hx-swap="outerHTML"
-    class="fa-star cursor-pointer {{if .IsFavorite}}fa-solid{{else}}fa-regular{{end}}"></span>
+  <span
+    hx-post="/api/books/{{.Book.ID}}/favorite"
+    hx-target="#star"
+    hx-swap="outerHTML"
+    class="fa-star cursor-pointer {{if .IsFavorite}}fa-solid{{else}}fa-regular{{end}}"
+  ></span>
   {{.Book.FavoriteCount}}
 </span>

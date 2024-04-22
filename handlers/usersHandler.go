@@ -66,9 +66,13 @@ func (h *UsersHandler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *UsersHandler) UpdateTokens(c *fiber.Ctx) error {
-	_, err := h.usersSvc.UpdateTokens(c)
-	if err != nil {
-		return err
+	if _, err := h.usersSvc.UpdateTokens(c); err != nil {
+		return c.
+			Status(fiber.StatusBadRequest).
+			Render("error", fiber.Map{
+				"ErrorTitle":  "update tokens failed",
+				"ErrorDetail": err.Error(),
+			})
 	}
 
 	return c.SendStatus(fiber.StatusOK)

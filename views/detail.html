@@ -1,29 +1,60 @@
 {{if .OnAdminPage}}
 
-<form hx-ext="json-enc, response-targets" hx-put="/api/books/{{.Book.ID}}" hx-target-error="#error-messages"
-  class="min-h-[calc(100vh-60px)] sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
+<form
+  hx-put="/api/books/{{.Book.ID}}"
+  hx-target-error="#error-messages"
+  class="min-h-full lg:w-[60rem] w-full flex flex-col p-3 mx-auto gap-3"
+>
   <div class="flex gap-3 flex-col min-[360px]:flex-row">
-    <input type="submit" value="Update" class="flex-auto btn btn-success" />
-    <a href="/{{if .OnAdminPage}}admin{{end}}" class="flex-auto btn btn-warning">Cancel</a>
-    <button hx-delete="/api/books/{{.Book.ID}}" type="button" class="flex-auto btn btn-error">
+    <a
+      hx-confirm="sadfjsda"
+      href="/{{if .OnAdminPage}}admin{{end}}"
+      class="flex-auto btn btn-warning"
+      >Cancel</a
+    >
+    <button
+      hx-confirm="Are you sure you wish to delete this book?"
+      hx-delete="/api/books/{{.Book.ID}}"
+      type="button"
+      class="flex-auto btn btn-error"
+    >
       Delete
     </button>
+    <input type="submit" value="Update" class="flex-auto btn btn-success" />
   </div>
 
   <div id="error-messages"></div>
 
   <label for="title" class="font-bold">Title</label>
-  <input type="text" name="title" value="{{.Book.Title}}" class="p-2 bg-neutral-200 border-black rounded-md" />
+  <input
+    type="text"
+    name="title"
+    value="{{.Book.Title}}"
+    class="p-2 bg-neutral-200 border-black rounded-md"
+  />
 
   <label for="author" class="font-bold">Author</label>
-  <input type="text" name="author" value="{{.Book.Author}}" class="p-2 bg-neutral-200 border-black rounded-md" />
+  <input
+    type="text"
+    name="author"
+    value="{{.Book.Author}}"
+    class="p-2 bg-neutral-200 border-black rounded-md"
+  />
 
   <label for="description" class="font-bold">Description</label>
-  <input type="text" name="description" value="{{.Book.Desc}}" class="p-2 bg-neutral-200 border-black rounded-md" />
+  <input
+    type="text"
+    name="description"
+    value="{{.Book.Desc}}"
+    class="p-2 bg-neutral-200 border-black rounded-md"
+  />
 
   <label for="content" class="font-bold">Content</label>
-  <textarea id="content" name="content"
-    class="flex-auto min-h-[15rem] p-2 bg-neutral-200 border-black rounded-md"></textarea>
+  <textarea
+    id="content"
+    name="content"
+    class="flex-auto min-h-[80vh] p-2 bg-neutral-200 border-black rounded-md"
+  ></textarea>
   <script>
     document.getElementById("content").innerHTML = "{{.Book.Content}}";
   </script>
@@ -31,7 +62,7 @@
 
 {{else}}
 
-<div class="sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
+<div class="min-h-full lg:w-[60rem] w-full flex flex-col p-3 mx-auto gap-3">
   <h1 class="text-5xl font-bold text-center">{{.Book.Title}}</h1>
   <p class="text-end italic mt-6 mb-4">
     Created by {{.Book.Author}} {{template "components/star" .}}
