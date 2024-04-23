@@ -43,7 +43,7 @@ func (s *server) Start() {
 
 	s.initRoutes()
 
-	log.Fatal(s.App.Listen(s.Cfg.Fiber.Port))
+	log.Fatal(s.App.Listen(s.Cfg.App.Port))
 }
 
 func (s *server) initRoutes() {

@@ -156,7 +156,7 @@ func (s *UsersService) VerifyToken(tokenString string) (*types.JwtPayload, error
 		tokenString,
 		&types.JwtClaim{},
 		func(t *jwt.Token) (interface{}, error) {
-			return []byte(s.cfg.JwtSecret), nil
+			return []byte(s.cfg.App.JwtSecret), nil
 		},
 	)
 	if err != nil {
@@ -216,7 +216,7 @@ func (s *UsersService) generateToken(
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
-	return token.SignedString([]byte(s.cfg.JwtSecret))
+	return token.SignedString([]byte(s.cfg.App.JwtSecret))
 }
 
 func (s *UsersService) hashPassword(password string) (string, error) {

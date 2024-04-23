@@ -8,12 +8,17 @@ import (
 )
 
 type Config struct {
-	PostgreSQL PostgreSQL
-	Fiber      Fiber
-	JwtSecret  string
+	App App
+	DB  DB
 }
 
-type PostgreSQL struct {
+type App struct {
+	Port      string
+	JwtSecret string
+	GCPBucket string
+}
+
+type DB struct {
 	Host     string
 	Port     string
 	User     string
@@ -21,11 +26,6 @@ type PostgreSQL struct {
 	DBName   string
 	SSLMode  string
 	TimeZone string
-}
-
-type Fiber struct {
-	Host string
-	Port string
 }
 
 func NewConfig() *Config {
@@ -37,7 +37,7 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		PostgreSQL: PostgreSQL{
+		DB: DB{
 			Host:     os.Getenv("DB_HOST"),
 			Port:     os.Getenv("DB_PORT"),
 			User:     os.Getenv("DB_USER"),
@@ -46,10 +46,10 @@ func NewConfig() *Config {
 			SSLMode:  os.Getenv("DB_SSL_MODE"),
 			TimeZone: os.Getenv("DB_TIME_ZONE"),
 		},
-		Fiber: Fiber{
-			Host: os.Getenv("FIBER_HOST"),
-			Port: os.Getenv("FIBER_PORT"),
+		App: App{
+			Port:      os.Getenv("APP_PORT"),
+			JwtSecret: os.Getenv("APP_JWTSECRET"),
+			GCPBucket: os.Getenv("APP_GCPBUCKET"),
 		},
-		JwtSecret: os.Getenv("JWT_SECRET"),
 	}
 }

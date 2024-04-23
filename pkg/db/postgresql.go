@@ -15,13 +15,13 @@ func NewDB(cfg *configs.Config) *gorm.DB {
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
-		cfg.PostgreSQL.Host,
-		cfg.PostgreSQL.Port,
-		cfg.PostgreSQL.User,
-		cfg.PostgreSQL.Password,
-		cfg.PostgreSQL.DBName,
-		cfg.PostgreSQL.SSLMode,
-		cfg.PostgreSQL.TimeZone,
+		cfg.DB.Host,
+		cfg.DB.Port,
+		cfg.DB.User,
+		cfg.DB.Password,
+		cfg.DB.DBName,
+		cfg.DB.SSLMode,
+		cfg.DB.TimeZone,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
