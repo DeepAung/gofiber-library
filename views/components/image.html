@@ -1,0 +1,13 @@
+<div id="book{{.ID}}" class="flex-initial relative min-w-[10rem] h-40 bg-base-100 shadow-xl">
+  <div class="absolute top-1 right-1">
+    <button hx-confirm="Are you sure you want to delete this image?" hx-post="/api/files/delete"
+      hx-vals='{ "dest": "{{.Dest}}" }' hx-target="#book{{.ID}}" hx-swap="delete" class="btn btn-square btn-sm">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+    <button onclick="navigator.clipboard.writeText('![{{.Filename}}]({{.Url}})')" class="btn btn-square btn-sm">
+      <i class="fa-regular fa-clipboard"></i>
+    </button>
+  </div>
+
+  <img src="{{.Url}}" alt="{{.Filename}}" class="block w-full h-full object-cover" />
+</div>

@@ -20,7 +20,7 @@ func NewBooksService(db *gorm.DB) *BooksService {
 
 func (s *BooksService) GetBooks() (*[]types.Book, error) {
 	books := new([]types.Book)
-	if err := s.db.Find(books).Error; err != nil {
+	if err := s.db.Model(&types.Book{}).Preload("Attachments").Find(books).Error; err != nil {
 		return nil, err
 	}
 
@@ -29,7 +29,7 @@ func (s *BooksService) GetBooks() (*[]types.Book, error) {
 
 func (s *BooksService) GetBook(id int) (*types.Book, error) {
 	book := new(types.Book)
-	if err := s.db.First(book, id).Error; err != nil {
+	if err := s.db.Model(&types.Book{}).Preload("Attachments").First(book, id).Error; err != nil {
 		return nil, err
 	}
 

@@ -7,7 +7,6 @@ import (
 
 func RenderErrorText(c *fiber.Ctx, msg string) error {
 	return c.
-		Status(fiber.StatusBadRequest).
 		Render("components/error-text", fiber.Map{
 			"Error": msg,
 		})

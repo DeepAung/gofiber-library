@@ -1,64 +1,46 @@
 {{if .OnAdminPage}}
 
-<form
-  hx-put="/api/books/{{.Book.ID}}"
-  hx-target-error="#error-messages"
-  class="min-h-full lg:w-[60rem] w-full flex flex-col p-3 mx-auto gap-3"
->
-  <div class="flex gap-3 flex-col min-[360px]:flex-row">
-    <a
-      hx-confirm="sadfjsda"
-      href="/{{if .OnAdminPage}}admin{{end}}"
-      class="flex-auto btn btn-warning"
-      >Cancel</a
-    >
-    <button
-      hx-confirm="Are you sure you wish to delete this book?"
-      hx-delete="/api/books/{{.Book.ID}}"
-      type="button"
-      class="flex-auto btn btn-error"
-    >
+<div class="min-h-full lg:w-[60rem] w-full flex flex-col p-3 mx-auto gap-3">
+  <div class="flex gap-3 flex-col min-[360px]:flex-row-reverse">
+    <input type="submit" form="book-form" value="Update" class="flex-auto btn btn-success" />
+    <button hx-confirm="Are you sure you wish to delete this book?" hx-delete="/api/books/{{.Book.ID}}" type="button"
+      class="flex-auto btn btn-error">
       Delete
     </button>
-    <input type="submit" value="Update" class="flex-auto btn btn-success" />
+    <a href="/{{if .OnAdminPage}}admin{{end}}" class="flex-auto btn btn-warning">Cancel</a>
   </div>
 
   <div id="error-messages"></div>
 
-  <label for="title" class="font-bold">Title</label>
-  <input
-    type="text"
-    name="title"
-    value="{{.Book.Title}}"
-    class="p-2 bg-neutral-200 border-black rounded-md"
-  />
+  <div class="flex gap-3 overflow-x-scroll">
+    {{range $Attachment := .Book.Attachments}}
+    {{template "components/image" $Attachment}}
+    {{end}}
 
-  <label for="author" class="font-bold">Author</label>
-  <input
-    type="text"
-    name="author"
-    value="{{.Book.Author}}"
-    class="p-2 bg-neutral-200 border-black rounded-md"
-  />
+    <form id="files-form" enctype="multipart/form-data" hx-post="/api/files/upload/{{.Book.ID}}" hx-swap="none"
+      class="min-w-[10rem] h-40 bg-base-100 shadow-xl flex flex-col justify-center items-center gap-2">
+      <input type="file" name="files" accept="image/*" multiple class="w-[10rem]" />
+      <input type="submit" form="files-form" value="Submit" class="btn btn-accent" />
+    </form>
+  </div>
 
-  <label for="description" class="font-bold">Description</label>
-  <input
-    type="text"
-    name="description"
-    value="{{.Book.Desc}}"
-    class="p-2 bg-neutral-200 border-black rounded-md"
-  />
+  <form id="book-form" hx-ext="json-enc" hx-put="/api/books/{{.Book.ID}}" hx-swap="none" class="flex flex-col gap-3">
+    <label for="title" class="font-bold">Title</label>
+    <input type="text" name="title" value="{{.Book.Title}}" class="p-2 bg-neutral-200 border-black rounded-md" />
 
-  <label for="content" class="font-bold">Content</label>
-  <textarea
-    id="content"
-    name="content"
-    class="flex-auto min-h-[80vh] p-2 bg-neutral-200 border-black rounded-md"
-  ></textarea>
-  <script>
-    document.getElementById("content").innerHTML = "{{.Book.Content}}";
-  </script>
-</form>
+    <label for="author" class="font-bold">Author</label>
+    <input type="text" name="author" value="{{.Book.Author}}" class="p-2 bg-neutral-200 border-black rounded-md" />
+
+    <label for="description" class="font-bold">Description</label>
+    <input type="text" name="description" value="{{.Book.Desc}}" class="p-2 bg-neutral-200 border-black rounded-md" />
+
+    <label for="content" class="font-bold">Content</label>
+    <textarea id="content" name="content" class="min-h-[80vh] p-2 bg-neutral-200 border-black rounded-md"></textarea>
+    <script>
+      document.getElementById("content").innerHTML = "{{.Book.Content}}";
+    </script>
+  </form>
+</div>
 
 {{else}}
 
@@ -76,3 +58,4 @@
 </div>
 
 {{end}}
+</div>

@@ -1,4 +1,5 @@
 docker.build:
+	go mod tidy
 	npx tailwindcss -i ./static/input.css -o ./static/output.css --minify
 	docker build -t gofiber-library:latest .
 docker.push:

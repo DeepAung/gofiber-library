@@ -1,1 +1,3 @@
-<p class="text-red-500 font-bold whitespace-pre-line">{{ .Error }}</p>
+<span hx-swap-oob="innerHTML:#error-messages">
+  <p class="text-red-500 font-bold whitespace-pre-line">{{ .Error }}</p>
+</span>

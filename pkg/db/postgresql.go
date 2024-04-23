@@ -35,7 +35,7 @@ func NewDB(cfg *configs.Config) *gorm.DB {
 		log.Fatal(err)
 	}
 
-	db.AutoMigrate(&types.User{}, &types.Book{})
+	db.AutoMigrate(&types.User{}, &types.Book{}, &types.Attachment{})
 	println("DB auto migrated")
 
 	return db

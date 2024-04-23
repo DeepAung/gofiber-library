@@ -6,6 +6,7 @@ import (
 	"github.com/DeepAung/gofiber-library/handlers"
 	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/DeepAung/gofiber-library/pkg/middlewares"
+	"github.com/DeepAung/gofiber-library/pkg/storer"
 	"github.com/DeepAung/gofiber-library/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -47,12 +48,16 @@ func (s *server) Start() {
 }
 
 func (s *server) initRoutes() {
+	storer := storer.NewGCPStorer(s.Cfg)
+
 	usersSvc := services.NewUsersService(s.DB, s.Cfg)
 	booksSvc := services.NewBooksService(s.DB)
+	filesSvc := services.NewFilesService(s.DB, storer)
 
 	api := s.App.Group("/api")
 	s.UsersRouter(api, usersSvc)
 	s.BooksRouter(api, booksSvc, usersSvc)
+	s.FilesRouter(api, filesSvc, usersSvc)
 	s.ViewsRouter(s.App, usersSvc, booksSvc)
 
 	s.App.Use(s.Mid.PageNotFound(usersSvc))
@@ -87,6 +92,21 @@ func (s *server) BooksRouter(
 	book.Put("/:id", onlyAdmin, handler.UpdateBook)
 	book.Delete("/:id", onlyAdmin, handler.DeleteBook)
 	book.Post("/:id/favorite", handler.ToggleFavoriteBook)
+}
+
+func (s *server) FilesRouter(
+	r fiber.Router,
+	filesSvc *services.FilesService,
+	usersSvc *services.UsersService,
+) {
+	handler := handlers.NewFilesHandler(filesSvc)
+
+	onlyAuthorized := s.Mid.JwtAccessTokenAuth(usersSvc)
+	onlyAdmin := s.Mid.OnlyAdmin(usersSvc)
+	file := r.Group("/files", onlyAuthorized, onlyAdmin)
+
+	file.Post("/upload/:bookId", handler.UploadFiles)
+	file.Post("/delete", handler.DeleteFile)
 }
 
 func (s *server) ViewsRouter(
