@@ -1,6 +1,8 @@
-docker.build:
+tidy:
 	go mod tidy
 	npx tailwindcss -i ./static/input.css -o ./static/output.css --minify
+
+docker.build: tidy
 	docker build -t gofiber-library:latest .
 docker.push:
 	docker tag gofiber-library:latest $(IMAGE_URL)

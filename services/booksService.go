@@ -50,7 +50,7 @@ func (s *BooksService) CreateBook(req *types.BookReq) error {
 
 func (s *BooksService) UpdateBook(req *types.BookReq, id int) error {
 	book := new(types.Book)
-	s.db.First(book)
+	s.db.Where("id = ?", id).First(book)
 
 	book.Title = req.Title
 	book.Author = req.Author
