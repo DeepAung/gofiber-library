@@ -1,7 +1,7 @@
-<form hx-post="/api/books" hx-swap="none" class="min-h-full sm:w-[35rem] w-full flex flex-col p-3 mx-auto gap-3">
-  <div class="flex gap-3 flex-col min-[360px]:flex-row">
-    <a href="/admin" class="flex-auto btn btn-warning">Cancel</a>
+<form hx-post="/api/books" hx-swap="none" class="min-h-full lg:w-[60rem] w-full flex flex-col p-3 mx-auto gap-3">
+  <div class="flex gap-3 flex-col min-[360px]:flex-row-reverse">
     <input type="submit" value="Create" class="flex-auto btn btn-success" />
+    <a href="/admin" class="flex-auto btn btn-warning">Cancel</a>
   </div>
 
   <div id="error-messages"></div>
@@ -16,5 +16,5 @@
   <input type="text" name="description" class="p-2 bg-neutral-200 border-black rounded-md" />
 
   <label for="content" class="font-bold">Content</label>
-  <textarea name="content" class="flex-auto min-h-[15rem] p-2 bg-neutral-200 border-black rounded-md"></textarea>
+  <textarea name="content" class="min-h-[80vh] p-2 bg-neutral-200 border-black rounded-md"></textarea>
 </form>
