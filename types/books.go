@@ -11,7 +11,7 @@ type Book struct {
 	Desc          string       `json:"description"   form:"description"`
 	Content       string       `json:"content"       form:"content"`
 	FavoriteCount int          `json:"favoriteCount" form:"favoriteCount" gorm:"default:0"`
-	Attachments   []Attachment `json:"attachments"   form:"attachments"`
+	Attachments   []Attachment `json:"attachments"   form:"attachments"   gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type BookReq struct {

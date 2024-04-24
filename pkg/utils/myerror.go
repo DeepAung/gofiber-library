@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/DeepAung/gofiber-library/types"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -16,7 +15,7 @@ func RenderErrorPage(
 	c *fiber.Ctx,
 	msg string,
 	isAuthenticated bool,
-	payload *types.JwtPayload,
+	payload any,
 	isAdmin bool,
 	onAdminPage bool,
 ) error {

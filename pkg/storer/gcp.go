@@ -158,7 +158,7 @@ func (s *GCPStorer) uploadFile(
 	fmt.Printf("Blob %v uploaded.\n", dest)
 	return FileRes{
 		Filename: file.Filename,
-		Url:      fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucket, dest),
+		Url:      utils.MakeGCPUrl(bucket, dest),
 	}, nil
 }
 

@@ -4,33 +4,46 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/DeepAung/gofiber-library/pkg/configs"
 	"github.com/DeepAung/gofiber-library/types"
 	"gorm.io/gorm"
 )
 
 type BooksService struct {
-	db *gorm.DB
+	db  *gorm.DB
+	cfg *configs.Config
 }
 
-func NewBooksService(db *gorm.DB) *BooksService {
+func NewBooksService(db *gorm.DB, cfg *configs.Config) *BooksService {
 	return &BooksService{
-		db: db,
+		db:  db,
+		cfg: cfg,
 	}
 }
 
 func (s *BooksService) GetBooks() (*[]types.Book, error) {
-	books := new([]types.Book)
-	if err := s.db.Model(&types.Book{}).Preload("Attachments").Find(books).Error; err != nil {
+	var books []types.Book
+	if err := s.db.Model(&types.Book{}).Preload("Attachments").Find(&books).Error; err != nil {
 		return nil, err
 	}
 
-	return books, nil
+	for i := range books {
+		for j := range books[i].Attachments {
+			books[i].Attachments[j].Fill(s.cfg.App.GCPBucket)
+		}
+	}
+
+	return &books, nil
 }
 
 func (s *BooksService) GetBook(id int) (*types.Book, error) {
 	book := new(types.Book)
 	if err := s.db.Model(&types.Book{}).Preload("Attachments").First(book, id).Error; err != nil {
 		return nil, err
+	}
+
+	for i := range book.Attachments {
+		book.Attachments[i].Fill(s.cfg.App.GCPBucket)
 	}
 
 	return book, nil
@@ -61,7 +74,7 @@ func (s *BooksService) UpdateBook(req *types.BookReq, id int) error {
 }
 
 func (s *BooksService) DeleteBook(id int) error {
-	result := s.db.Delete(&types.Book{}, id)
+	result := s.db.Unscoped().Delete(&types.Book{}, id)
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("book not found")
 	}
@@ -117,7 +130,7 @@ func (s *BooksService) favoriteBook(userId int, bookId int) (bool, error) {
 
 func (s *BooksService) unfavoriteBook(userId int, bookId int) (bool, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Delete(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
+		err := tx.Unscoped().Delete(&types.UserFavbooks{UserID: userId, BookID: bookId}).Error
 		if err != nil {
 			return err
 		}

@@ -53,7 +53,8 @@ func (h *FilesService) DeleteFiles(dests []string) error {
 	// TODO: optimize this
 	return h.db.Transaction(func(tx *gorm.DB) error {
 		for _, dest := range dests {
-			if err := tx.Model(&types.Attachment{}).
+			if err := tx.Unscoped().
+				Model(&types.Attachment{}).
 				Where("dest = ?", dest).
 				Delete(&types.Attachment{}).
 				Error; err != nil {

@@ -51,7 +51,7 @@ func (s *server) initRoutes() {
 	storer := storer.NewGCPStorer(s.Cfg)
 
 	usersSvc := services.NewUsersService(s.DB, s.Cfg)
-	booksSvc := services.NewBooksService(s.DB)
+	booksSvc := services.NewBooksService(s.DB, s.Cfg)
 	filesSvc := services.NewFilesService(s.DB, storer)
 
 	api := s.App.Group("/api")
