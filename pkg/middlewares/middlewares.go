@@ -76,7 +76,8 @@ func (m *Middleware) OnlyAdmin(usersSvc *services.UsersService) fiber.Handler {
 
 		isAdmin, err := usersSvc.IsAdmin(payload.ID)
 		if err != nil {
-			return c.Redirect("/")
+			usersSvc.ClearToken(c)
+			return c.Redirect("/login")
 		}
 
 		c.Locals("isAdmin", isAdmin)
@@ -98,7 +99,8 @@ func (m *Middleware) SetIsAdmin(usersSvc *services.UsersService) fiber.Handler {
 
 		isAdmin, err := usersSvc.IsAdmin(payload.ID)
 		if err != nil {
-			return c.Redirect("/")
+			usersSvc.ClearToken(c)
+			return c.Redirect("/login")
 		}
 
 		c.Locals("isAdmin", isAdmin)
