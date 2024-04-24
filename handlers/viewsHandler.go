@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"html/template"
 	"strconv"
 
 	"github.com/DeepAung/gofiber-library/pkg/configs"
@@ -101,6 +102,7 @@ func (h *ViewsHandler) DetailView(c *fiber.Ctx) error {
 
 	return c.Render("detail", fiber.Map{
 		"Book":            book,
+		"Content":         template.HTML(book.Content),
 		"IsFavorite":      isFavorite,
 		"IsAuthenticated": true,
 		"Payload":         payload,
